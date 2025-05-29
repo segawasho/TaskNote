@@ -13,6 +13,9 @@ module TaskNote
     # 追加！lib配下のクラスも自動読み込み対象にする
     config.eager_load_paths << Rails.root.join("lib")
 
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore
+
     config.api_only = true
   end
 end
