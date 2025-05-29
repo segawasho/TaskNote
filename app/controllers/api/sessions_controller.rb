@@ -9,7 +9,7 @@ class Api::SessionsController < ApplicationController
       cookies.encrypted[:jwt] = {
         value: token,
         httponly: true,
-        secure: Rails.env.production? ? true : false,
+        secure: Rails.env.production?,
         same_site: :lax
       }
 
