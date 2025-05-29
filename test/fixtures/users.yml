@@ -1,0 +1,39 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  password_digest: MyString
+  is_admin: false
+  email: MyString
+  prefecture: MyString
+  city: MyString
+  utm_source: MyString
+  utm_medium: MyString
+  has_project_plan: false
+  has_wbs_plan: false
+  has_file_upload_plan: false
+  has_full_package_plan: false
+  has_annual_plan: false
+  is_invited_user: false
+  role: one
+  industry: one
+  custom_role_description: MyString
+
+two:
+  name: MyString
+  password_digest: MyString
+  is_admin: false
+  email: MyString
+  prefecture: MyString
+  city: MyString
+  utm_source: MyString
+  utm_medium: MyString
+  has_project_plan: false
+  has_wbs_plan: false
+  has_file_upload_plan: false
+  has_full_package_plan: false
+  has_annual_plan: false
+  is_invited_user: false
+  role: two
+  industry: two
+  custom_role_description: MyString
