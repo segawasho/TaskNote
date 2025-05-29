@@ -1,6 +1,8 @@
-
 # TaskNote 開発構成 README
+
 ## Rails API + Vite React SPA
+
+---
 
 ## 📦 技術スタック
 
@@ -15,41 +17,77 @@
 
 ---
 
-## 🔐 認証の仕組み（JWT＋Cookie）
+## 🔐 認証の仕組み（JWT + Cookie）
 
-- 会員登録 (`POST /api/signup`) / ログイン (`POST /api/login`) 時に `cookies.encrypted[:jwt]` にトークン保存
-- Cookie属性:
+- 会員登録（`POST /api/signup`）やログイン（`POST /api/login`）時に `cookies.encrypted[:jwt]` にトークンを保存
+- Cookie の属性：
   - `httponly: true`
   - `secure: Rails.env.production?`
   - `same_site: :lax`
-- 認証チェック: `ApplicationController` で `current_user` を定義し、`authenticate_user!` で保護
-- 認証付きAPI例: `GET /api/current_user`
+- `ApplicationController` に `current_user` / `authenticate_user!` を定義
+- 認証付きAPI例：`GET /api/current_user`
+
+---
+
+## 🍪 認証・セッション管理設定（JWT + Cookie）
+
+Rails APIモードで Cookie ベースのセッションを利用するため、以下の設定が必要です。
+
+### Cookie の保存設定（`sessions_controller.rb` など）
+
+```rb
+cookies.encrypted[:jwt] = {
+  value: token,
+  httponly: true,
+  secure: false,     # 本番では true にする
+  same_site: :lax    # 本番では :lax または :none（CORS構成により調整）
+}
+```
+
+- `httponly`: JSからアクセス不可にする
+- `secure`: 本番環境では HTTPS 接続に限定するため true にする
+- `same_site`: 開発中は :lax、本番でドメインをまたぐ場合は :none（CORS対応必須）
+
+### Rails APIモードで Cookie を有効にする（`config/application.rb`）
+
+```rb
+config.middleware.use ActionDispatch::Cookies
+config.middleware.use ActionDispatch::Session::CookieStore
+```
+
+> Rails API モードではこれらのミドルウェアが無効化されているため、明示的に追加が必要です。
 
 ---
 
 ## 🛠️ 開発・ビルド手順
 
-### 開発時（ローカル分離）
-- Rails API: `localhost:3001`
-  ```bash
-  bin/rails s -p 3001
-  ```
-- Vite（React）: `localhost:3000`
-  ```bash
-  npm run dev
-  ```
+### 開発環境（ローカル・ポート分離）
+
+#### Rails API（port: 3001）
+
+```bash
+bin/rails s -p 3001
+```
+
+#### React / Vite（port: 3000）
+
+```bash
+npm run dev
+```
 
 ### 本番想定ビルド（統合）
+
 ```bash
 npm run build
 ```
-- 出力先: `public/` 以下（vite.config.tsで設定）
+
+- 出力先：`public/` 以下（`vite.config.ts` にて指定）
 
 ---
 
 ## 🌐 CORS 設定（`config/initializers/cors.rb`）
 
-```ruby
+```rb
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     origins 'http://localhost:3000'
@@ -143,16 +181,9 @@ get '*path', to: 'static#index', constraints: ->(req) { !req.xhr? && req.format.
 
 ---
 
-## 🐞 現在の課題（開発引き継ぎメモ）
+## 🐞 開発引き継ぎメモ
 
-- ログイン成功しても Cookie にトークンが保存されていない可能性あり
-- その結果、`/api/current_user` にアクセスすると `Unauthorized` が返る
 - Viteのproxy開発では Cookie（SameSite＋HttpOnly）の取り扱いに注意が必要
-
----
-
-## ✅ 今後確認したいこと
-
 - Cookie送信時に `credentials: 'include'` が `fetch` 側で有効になっているか？
 - Cookieが保存されているか（DevTools > Application > Cookies）
 - APIとReactが別ポートのため、CORSとSameSiteの相性に注意

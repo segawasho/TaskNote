@@ -72,3 +72,29 @@ else
     end
   end
 end
+
+
+
+puts "✅ 管理者ユーザーを2名作成します"
+User.create!(
+  [
+    {
+      name: '管理者A',
+      email: 'segawasho0825@gmail.com',
+      password: 'password',
+      password_confirmation: 'password',
+      is_admin: true,
+      role_id: Role.first.id,
+      industry_id: Industry.first.id
+    },
+    {
+      name: '管理者B',
+      email: 'segawasho0825pro@gmail.com',
+      password: 'password',
+      password_confirmation: 'password',
+      is_admin: true,
+      role_id: Role.last.id,
+      industry_id: Industry.last.id
+    }
+  ]
+)

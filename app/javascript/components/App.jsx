@@ -3,8 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Signup from './Signup';
 import Login from './Login';
-
-const TopPage = () => <h2>トップページ（仮）</h2>;
+import TopPage from './TopPage';
 
 const App = () => (
   <BrowserRouter>

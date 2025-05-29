@@ -9,8 +9,8 @@ class Api::SessionsController < ApplicationController
       cookies.encrypted[:jwt] = {
         value: token,
         httponly: true,
-        secure: Rails.env.production?,
-        same_site: :lax
+        secure: false,     # 本番では true
+        same_site: :lax    # 本番では :lax か :none（要CORS対応）
       }
 
       render json: { user: user.slice(:id, :email, :name) }, status: :ok
