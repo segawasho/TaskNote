@@ -1,17 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Signup from './Signup';
-import Login from './Login';
-import TopPage from './TopPage';
+import { BrowserRouter } from 'react-router-dom';
+import AppRoutes from './AppRoutes';
 
 const App = () => (
   <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<TopPage />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/login" element={<Login />} />
-    </Routes>
+    <AppRoutes />
   </BrowserRouter>
 );
 

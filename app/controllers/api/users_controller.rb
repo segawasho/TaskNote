@@ -8,7 +8,9 @@ class Api::UsersController < ApplicationController
         id: current_user.id,
         email: current_user.email,
         name: current_user.name,
-        is_admin: current_user.is_admin
+        is_admin: current_user.is_admin,
+        role: current_user.role&.name,
+        industry: current_user.industry&.name
       }
     }
   end

@@ -10,9 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_05_25_230000) do
+ActiveRecord::Schema[7.1].define(version: 2025_05_29_173911) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "categories", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.datetime "deleted_at"
+    t.index ["user_id"], name: "index_categories_on_user_id"
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.datetime "deleted_at"
+    t.index ["user_id"], name: "index_customers_on_user_id"
+  end
 
   create_table "industries", force: :cascade do |t|
     t.string "name", null: false
@@ -40,6 +58,31 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_25_230000) do
     t.index ["sort_order"], name: "index_roles_on_sort_order"
   end
 
+  create_table "statuses", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.datetime "deleted_at"
+    t.index ["user_id"], name: "index_statuses_on_user_id"
+  end
+
+  create_table "tasks", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description"
+    t.date "due_date"
+    t.bigint "user_id", null: false
+    t.bigint "category_id", null: false
+    t.bigint "customer_id", null: false
+    t.bigint "status_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_tasks_on_category_id"
+    t.index ["customer_id"], name: "index_tasks_on_customer_id"
+    t.index ["status_id"], name: "index_tasks_on_status_id"
+    t.index ["user_id"], name: "index_tasks_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name", limit: 20, null: false
     t.string "password_digest", null: false
@@ -65,7 +108,14 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_25_230000) do
     t.index ["role_id"], name: "index_users_on_role_id"
   end
 
+  add_foreign_key "categories", "users"
+  add_foreign_key "customers", "users"
   add_foreign_key "roles", "role_categories"
+  add_foreign_key "statuses", "users"
+  add_foreign_key "tasks", "categories"
+  add_foreign_key "tasks", "customers"
+  add_foreign_key "tasks", "statuses"
+  add_foreign_key "tasks", "users"
   add_foreign_key "users", "industries"
   add_foreign_key "users", "roles"
 end

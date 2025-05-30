@@ -47,8 +47,11 @@ const TopPage = () => {
         <div className="space-y-2">
           <p className="text-lg">👤 ようこそ、<span className="font-semibold">{user.name}</span> さん！</p>
           <p className="text-gray-700">📧 {user.email}</p>
-          <p>🧑‍💼 職種ID: {user.role_id}</p>
-          <p>🏭 業種ID: {user.industry_id || '未設定'}</p>
+          <p className="text-gray-700">
+            🔑 {user.is_admin ? '管理者ユーザー' : '一般ユーザー'}
+          </p>
+          <p>🧑‍💼 職種: {user.role || '未設定'}</p>
+          <p>🏭 業種: {user.industry || '未設定'}</p>
 
           <button
             onClick={handleLogout}

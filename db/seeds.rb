@@ -74,27 +74,42 @@ else
 end
 
 
+if User.where(email: ['segawasho0825@gmail.com', 'segawasho0825pro@gmail.com']).exists?
+  puts "✅ 管理者ユーザー（A/B）はすでに存在します"
+else
+  puts "✅ 管理者ユーザーを2名作成します"
 
-puts "✅ 管理者ユーザーを2名作成します"
-User.create!(
-  [
-    {
-      name: '管理者A',
-      email: 'segawasho0825@gmail.com',
-      password: 'password',
-      password_confirmation: 'password',
-      is_admin: true,
-      role_id: Role.first.id,
-      industry_id: Industry.first.id
-    },
-    {
-      name: '管理者B',
-      email: 'segawasho0825pro@gmail.com',
-      password: 'password',
-      password_confirmation: 'password',
-      is_admin: true,
-      role_id: Role.last.id,
-      industry_id: Industry.last.id
-    }
-  ]
+  User.create!(
+    [
+      {
+        name: '管理者A',
+        email: 'segawasho0825@gmail.com',
+        password: 'password',
+        password_confirmation: 'password',
+        is_admin: true,
+        role_id: Role.first.id,
+        industry_id: Industry.first.id
+      },
+      {
+        name: '管理者B',
+        email: 'segawasho0825pro@gmail.com',
+        password: 'password',
+        password_confirmation: 'password',
+        is_admin: true,
+        role_id: Role.last.id,
+        industry_id: Industry.last.id
+      }
+    ]
+  )
+  puts "✅ 管理者ユーザー2名を登録しました"
+end
+
 )
+
+if Status.where(user_id: nil, name: '未着手').exists?
+  puts "✅ Status 共通マスタ（未着手・完了）はすでに存在します"
+else
+  Status.create!(name: '未着手', user_id: nil)
+  Status.create!(name: '完了', user_id: nil)
+  puts "✅ Status 共通マスタ（未着手・完了）を登録しました"
+end

@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  description: MyText
+  due_date: 2025-05-30
+  user: one
+  category: one
+  customer: one
+  status: one
+
+two:
+  title: MyString
+  description: MyText
+  due_date: 2025-05-30
+  user: two
+  category: two
+  customer: two
+  status: two
