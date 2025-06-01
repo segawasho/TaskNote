@@ -17,15 +17,38 @@
 
 ---
 
-## 🔐 認証の仕組み（JWT + Cookie）
+## 🔐 認証の仕組み（JWT + Refreshトークン）
 
-- 会員登録（`POST /api/signup`）やログイン（`POST /api/login`）時に `cookies.encrypted[:jwt]` にトークンを保存
+- 会員登録（`POST /api/signup`）やログイン（`POST /api/login`）時にトークンを発行
+  - `cookies.encrypted[:jwt]`: 短命トークン（例：15分間有効）
+  - `cookies.encrypted[:refresh_token]`: 長命トークン（例：14日間有効、毎朝4時で一律失効）
 - Cookie の属性：
   - `httponly: true`
   - `secure: Rails.env.production?`
   - `same_site: :lax`
 - `ApplicationController` に `current_user` / `authenticate_user!` を定義
 - 認証付きAPI例：`GET /api/current_user`
+
+---
+
+## ♻️ リフレッシュトークンの更新と失効
+
+- JWTが失効して401を返した際、React側（app/javascript/components/api.js）で自動的に `POST /api/refresh_token` を叩いて再取得を試みる。
+- サーバー側（`tokens_controller.rb`）でリフレッシュトークンの有効性を検証し、JWTを再発行。
+- 更新成功時は `Token refreshed` を返し、React側は再実行。
+- 失敗（例：リフレッシュトークンの有効期限切れ）の場合は `cookies.delete(:jwt)` `cookies.delete(:refresh_token)` でクッキー削除、ログアウトを促す。
+- トークンの有効期限は以下のように設定：
+
+```rb
+# lib/json_web_token.rb
+def self.refresh_token_expiration
+  today_4am = Time.zone.now.beginning_of_day + 4.hours
+  Time.zone.now > today_4am ? (today_4am + 1.day) : today_4am
+end
+```
+
+> 毎日「日本時間の午前4時」でリフレッシュトークンを一律失効。  
+> 例：6/1 22時にログイン → 有効期限は6/2 4:00AM。
 
 ---
 
@@ -39,14 +62,18 @@ Rails APIモードで Cookie ベースのセッションを利用するため、
 cookies.encrypted[:jwt] = {
   value: token,
   httponly: true,
-  secure: false,     # 本番では true にする
-  same_site: :lax    # 本番では :lax または :none（CORS構成により調整）
+  secure: false, # 本番では trueにする！
+  same_site: :lax
+}
+
+cookies.encrypted[:refresh_token] = {
+  value: refresh_token,
+  httponly: true,
+  secure: false,
+  same_site: :lax,
+  expires: JsonWebToken.refresh_token_expiration
 }
 ```
-
-- `httponly`: JSからアクセス不可にする
-- `secure`: 本番環境では HTTPS 接続に限定するため true にする
-- `same_site`: 開発中は :lax、本番でドメインをまたぐ場合は :none（CORS対応必須）
 
 ### Rails APIモードで Cookie を有効にする（`config/application.rb`）
 
@@ -54,8 +81,6 @@ cookies.encrypted[:jwt] = {
 config.middleware.use ActionDispatch::Cookies
 config.middleware.use ActionDispatch::Session::CookieStore
 ```
-
-> Rails API モードではこれらのミドルウェアが無効化されているため、明示的に追加が必要です。
 
 ---
 
@@ -76,12 +101,11 @@ npm run dev
 ```
 
 ### 本番想定ビルド（統合）
+#### ※sessions_controller.rbのsecure設定直してから行う
 
 ```bash
 npm run build
 ```
-
-- 出力先：`public/` 以下（`vite.config.ts` にて指定）
 
 ---
 
@@ -105,9 +129,9 @@ end
 ```ts
 export default defineConfig({
   plugins: [react()],
-  root: 'app/javascript',
+  root: 'app/javascript', // JSXなどのルート
   build: {
-    outDir: '../../public',
+    outDir: '../../public', // ✅ public配下にビルドファイルを出力
     emptyOutDir: true
   },
   resolve: {
@@ -132,11 +156,19 @@ export default defineConfig({
 namespace :api do
   post '/signup', to: 'registrations#create'
   post '/login', to: 'sessions#create'
+  post '/refresh_token', to: 'tokens#create'
   delete '/logout', to: 'sessions#destroy'
   get '/current_user', to: 'users#show'
 
   resources :roles, only: [:index]
   resources :industries, only: [:index]
+
+  resources :users, only: [:index, :update]
+
+  resources :categories
+  resources :customers
+  resources :statuses
+  resources :tasks
 end
 
 # React SPA 用
@@ -145,46 +177,4 @@ get '*path', to: 'static#index', constraints: ->(req) { !req.xhr? && req.format.
 
 ---
 
-## 🗃️ 主なDBテーブル構成（schema.rb抜粋）
-
-### users
-- name, email, password_digest
-- role_id, industry_id（外部キー）
-- プラン利用状況（has_project_plan 等）
-
-### roles / role_categories
-- name
-- role_category_id（rolesに外部キー）
-
-### industries
-- name
-
----
-
-## 📁 構成とチェックすべきファイル
-
-### React側
-- `app/javascript/index.jsx`：Reactルート
-- `app/javascript/components/App.jsx`：ルーティング定義
-- `app/javascript/components/Login.jsx`：ログインフォーム
-- `app/javascript/components/Signup.jsx`：会員登録フォーム
-- `app/javascript/styles/tailwind.css`
-
-### Rails側
-- `app/controllers/api/sessions_controller.rb`
-- `app/controllers/api/registrations_controller.rb`
-- `app/controllers/api/users_controller.rb`
-- `app/controllers/application_controller.rb`
-- `lib/json_web_token.rb`
-- `config/routes.rb`
-- `config/initializers/cors.rb`
-
----
-
 ## 🐞 開発引き継ぎメモ
-
-- Viteのproxy開発では Cookie（SameSite＋HttpOnly）の取り扱いに注意が必要
-- Cookie送信時に `credentials: 'include'` が `fetch` 側で有効になっているか？
-- Cookieが保存されているか（DevTools > Application > Cookies）
-- APIとReactが別ポートのため、CORSとSameSiteの相性に注意
-- 本番ではポート統合 or サブドメイン + CORS構成の検討

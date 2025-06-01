@@ -31,16 +31,42 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h2>ログイン</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="メール" required />
-        <input type="password" name="password" value={form.password} onChange={handleChange} placeholder="パスワード" required />
-        <button type="submit">ログイン</button>
+    <div className="max-w-md mx-auto mt-10 bg-white shadow-md rounded p-6">
+      <h2 className="text-2xl font-bold mb-6 text-center text-gray-600">ログイン</h2>
+
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="email"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+          placeholder="メールアドレス"
+          required
+          className="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
+        />
+
+        <input
+          type="password"
+          name="password"
+          value={form.password}
+          onChange={handleChange}
+          placeholder="パスワード"
+          required
+          className="w-full border border-gray-300 px-4 py-2 rounded focus:outline-none focus:ring focus:ring-blue-200"
+        />
+
+        <button
+          type="submit"
+          className="w-full bg-gray-400 text-white py-2 rounded hover:bg-gray-600 transition"
+        >
+          ログイン
+        </button>
       </form>
     </div>
   );
+
 };
 
 export default Login;

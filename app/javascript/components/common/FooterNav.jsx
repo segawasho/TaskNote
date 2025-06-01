@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const FooterNav = ({ user }) => {
+const FooterNav = ({ user, className = '' }) => {
   const location = useLocation();
 
   const navItems = [
@@ -23,7 +23,7 @@ const FooterNav = ({ user }) => {
   ];
 
   return (
-    <footer className="fixed bottom-0 left-0 w-full h-14 z-50">
+    <footer className={`fixed bottom-0 left-0 w-full h-14 z-50 ${className}`}>
       <div className="flex h-full text-center bg-white shadow-inner">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;

@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   namespace :api do
     post '/signup', to: 'registrations#create'
     post '/login',  to: 'sessions#create'
+    post '/refresh_token', to: 'tokens#create'
     delete '/logout', to: 'sessions#destroy'
     get '/current_user',  to: 'users#show'
 

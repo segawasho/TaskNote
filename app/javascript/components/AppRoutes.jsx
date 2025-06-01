@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
+import { apiFetch } from './api';
+
 import PageLayout from '../components/common/PageLayout';
 import TopPage from './TopPage';
 import Signup from './Signup';
@@ -11,8 +13,10 @@ const AppRoutes = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 現在のユーザーを取得
   useEffect(() => {
+    // ページロード時に useEffect で apiFetch('/api/current_user') を実行
+    // APIが401返したら api.js 内で /api/refresh_token
+    // これにより トークン切れでもログアウトさせずに自動リフレッシュ可能
     const fetchCurrentUser = async () => {
       if (['/login', '/signup'].includes(location.pathname)) {
         setLoading(false);
@@ -20,11 +24,7 @@ const AppRoutes = () => {
       }
 
       try {
-        const res = await fetch('/api/current_user', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
+        const res = await apiFetch('/api/current_user');
         if (!res.ok) throw new Error('Unauthorized');
 
         const data = await res.json();
@@ -45,7 +45,12 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* 非ログインユーザー向けルート */}
-      <Route path="/login" element={<Login onLogin={setUser} />} />
+      <Route path="/login" element={
+        <PageLayout>
+          <Login onLogin={setUser} />
+        </PageLayout>
+        }
+      />
       <Route path="/signup" element={<Signup onSignup={setUser} />} />
 
       {/* ログイン済みユーザー向けルート */}

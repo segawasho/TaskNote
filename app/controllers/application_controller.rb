@@ -5,7 +5,11 @@ class ApplicationController < ActionController::API
     return nil unless cookies.encrypted[:jwt]
 
     decoded = JsonWebToken.decode(cookies.encrypted[:jwt])
-    @current_user ||= User.find_by(id: decoded[:user_id]) if decoded
+    if decoded
+      @current_user = User.find_by(id: decoded[:user_id])
+    else
+      @current_user = nil
+    end
   end
 
   def authenticate_user!
