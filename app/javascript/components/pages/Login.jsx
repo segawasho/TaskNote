@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { ToastContext } from '../contexts/ToastContext';
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
+
+  const { showToast } = useContext(ToastContext);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,8 +25,10 @@ const Login = () => {
 
     if (response.ok) {
       const data = await response.json();
-      alert(`ようこそ、${data.user.name} さん！`);
-      window.location.href = '/'; // トップページへ遷移
+      showToast('ログインしました', 'success');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     } else {
       const err = await response.json();
       setError(err.error || 'ログインに失敗しました');
@@ -31,7 +36,7 @@ const Login = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white shadow-md rounded p-6">
+    <div className="max-w-md mx-auto mt-0 bg-white shadow-md rounded p-6">
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-600">ログイン</h2>
 
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}

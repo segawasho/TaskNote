@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from './logo-tasknote.png';
-import Modal from './Modal';
+import { ToastContext } from '../contexts/ToastContext';
+import { ModalContext } from '../contexts/ModalContext';
 
 const Header = ({ user }) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const { showModal, hideModal } = useContext(ModalContext);
+  const { showToast } = useContext(ToastContext);
+
   const navigate = useNavigate();
+
+  // ログアウトモーダル
+  const confirmLogout = () => {
+    showModal({
+      title: 'ログアウト確認',
+      message: 'ログアウトしますか？',
+      onConfirm: handleLogout,
+    });
+  };
 
   // ログアウト処理
   const handleLogout = async () => {
@@ -14,8 +27,11 @@ const Header = ({ user }) => {
       method: 'DELETE',
       credentials: 'include',
     });
-    alert('ログアウトしました');
-    window.location.href = '/login';
+    showToast('ログアウトしました', 'success');
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 100);
+    // window.location.href = '/login';
   };
 
   return (
@@ -24,7 +40,7 @@ const Header = ({ user }) => {
         {/* 中央ロゴ（常に中央に固定） */}
         <div className="absolute left-1/2 transform -translate-x-1/2 w-auto text-center">
           <Link to="/">
-            <img src={logo} alt="TaskNote ロゴ" className="h-10 mx-auto cursor-pointer" />
+            <img src={logo} alt="TaskNote ロゴ" className="h-6 mx-auto cursor-pointer" />
           </Link>
         </div>
 
@@ -55,6 +71,13 @@ const Header = ({ user }) => {
               >
                 🏠 ホーム
               </Link>
+              <Link
+                to="/profile"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-100"
+                onClick={() => setMenuOpen(false)}
+              >
+                🙋‍♂️ プロフィール
+              </Link>
               {user?.is_admin && (
                 <Link
                   to="/admin/users"
@@ -68,46 +91,40 @@ const Header = ({ user }) => {
                 className="block px-4 py-3 text-red-600 hover:bg-gray-100 cursor-pointer"
                 onClick={() => {
                   setMenuOpen(false);
-                  setShowLogoutModal(true);
+                  confirmLogout();
                 }}
               >
                 🔓 ログアウト
               </div>
             </>
           ) : (
-            <Link
-              to="/login"
-              className="block px-4 py-3 text-gray-800 hover:bg-gray-100"
-              onClick={() => setMenuOpen(false)}
-            >
-              🔐 ログイン
-            </Link>
+            <>
+              <Link
+                to="/login"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-100"
+                onClick={() => setMenuOpen(false)}
+              >
+                🗒️ TaskNoteとは
+              </Link>
+              <Link
+                to="/signup"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-100"
+                onClick={() => setMenuOpen(false)}
+              >
+                👤 新規会員登録
+              </Link>
+              <Link
+                to="/login"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-100"
+                onClick={() => setMenuOpen(false)}
+              >
+                🔐 ログイン
+              </Link>
+            </>
           )}
         </div>
       )}
 
-      {/* ▼ ログアウト確認モーダル（ログイン中のみ） */}
-      {user && showLogoutModal && (
-        <Modal>
-          <div className="text-center space-y-4">
-            <p className="text-lg font-semibold">ログアウトしますか？</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={handleLogout}
-                className="w-32 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                はい
-              </button>
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="w-32 bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                キャンセル
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </header>
   );
 

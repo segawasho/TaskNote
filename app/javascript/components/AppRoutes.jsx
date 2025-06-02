@@ -4,9 +4,10 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { apiFetch } from './api';
 
 import PageLayout from '../components/common/PageLayout';
-import TopPage from './TopPage';
-import Signup from './Signup';
-import Login from './Login';
+import TopPage from '../components/pages/TopPage';
+import Signup from '../components/pages/Signup';
+import Login from '../components/pages/Login';
+import Profile from '../components/pages/Profile';
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -51,16 +52,31 @@ const AppRoutes = () => {
         </PageLayout>
         }
       />
-      <Route path="/signup" element={<Signup onSignup={setUser} />} />
+      <Route path="/signup" element={
+        <PageLayout>
+          <Signup onSignup={setUser} />
+        </PageLayout>
+        }
+      />
 
       {/* ログイン済みユーザー向けルート */}
       {user ? (
         <>
+          {/* トップページ */}
           <Route
             path="/"
             element={
               <PageLayout user={user}>
                 <TopPage user={user} />
+              </PageLayout>
+            }
+          />
+          {/* プロフィール */}
+          <Route
+            path="/profile"
+            element={
+              <PageLayout user={user}>
+                <Profile />
               </PageLayout>
             }
           />
