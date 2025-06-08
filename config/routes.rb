@@ -13,7 +13,11 @@ Rails.application.routes.draw do
 
     resources :categories
     resources :customers
-    resources :statuses
+    resources :statuses do
+      collection do
+        patch :reorder
+      end
+    end
     resources :tasks
 
     # 翔メモ dashboard/summary どうするか検討

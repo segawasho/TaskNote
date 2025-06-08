@@ -8,6 +8,12 @@ import TopPage from '../components/pages/TopPage';
 import Signup from '../components/pages/Signup';
 import Login from '../components/pages/Login';
 import Profile from '../components/pages/Profile';
+import TaskList from '../components/tasks/TaskList';
+import CustomerMaster from '../components/master/CustomerMaster';
+import CategoryMaster from '../components/master/CategoryMaster';
+import StatusMaster from '../components/master/StatusMaster';
+
+
 
 const AppRoutes = () => {
   const location = useLocation();
@@ -76,7 +82,43 @@ const AppRoutes = () => {
             path="/profile"
             element={
               <PageLayout user={user}>
-                <Profile />
+                <Profile user={user} />
+              </PageLayout>
+            }
+          />
+          {/* カスタマーマスタ */}
+          <Route
+            path="/customer_master"
+            element={
+              <PageLayout user={user}>
+                <CustomerMaster user={user} />
+              </PageLayout>
+            }
+          />
+          {/* カテゴリマスタ */}
+          <Route
+            path="/category_master"
+            element={
+              <PageLayout user={user}>
+                <CategoryMaster user={user} />
+              </PageLayout>
+            }
+          />
+          {/* ステータスマスタ */}
+          <Route
+            path="/status_master"
+            element={
+              <PageLayout user={user}>
+                <StatusMaster user={user} />
+              </PageLayout>
+            }
+          />
+          {/* タスクリスト */}
+          <Route
+            path="/tasks"
+            element={
+              <PageLayout user={user}>
+                <TaskList user={user} />
               </PageLayout>
             }
           />

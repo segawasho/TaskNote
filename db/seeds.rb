@@ -1,13 +1,3 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
-
 if RoleCategory.exists?
   puts "✅ 初期データ（RoleCategory, Role, Industry）は既に投入済みです。"
 else
@@ -74,42 +64,30 @@ else
 end
 
 
-if User.where(email: ['segawasho0825@gmail.com', 'segawasho0825pro@gmail.com']).exists?
-  puts "✅ 管理者ユーザー（A/B）はすでに存在します"
-else
-  puts "✅ 管理者ユーザーを2名作成します"
+puts "✅ 管理者ユーザーを作成します"
 
+unless User.exists?(email: 'segawasho0825@gmail.com')
   User.create!(
-    [
-      {
-        name: '管理者A',
-        email: 'segawasho0825@gmail.com',
-        password: 'password',
-        password_confirmation: 'password',
-        is_admin: true,
-        role_id: Role.first.id,
-        industry_id: Industry.first.id
-      },
-      {
-        name: '管理者B',
-        email: 'segawasho0825pro@gmail.com',
-        password: 'password',
-        password_confirmation: 'password',
-        is_admin: true,
-        role_id: Role.last.id,
-        industry_id: Industry.last.id
-      }
-    ]
+    name: '管理者A',
+    email: 'segawasho0825@gmail.com',
+    password: 'password',
+    password_confirmation: 'password',
+    is_admin: true,
+    role_id: Role.first.id,
+    industry_id: Industry.first.id
   )
-  puts "✅ 管理者ユーザー2名を登録しました"
+  puts "✅ 管理者A 登録完了"
 end
 
-)
-
-if Status.where(user_id: nil, name: '未着手').exists?
-  puts "✅ Status 共通マスタ（未着手・完了）はすでに存在します"
-else
-  Status.create!(name: '未着手', user_id: nil)
-  Status.create!(name: '完了', user_id: nil)
-  puts "✅ Status 共通マスタ（未着手・完了）を登録しました"
+unless User.exists?(email: 'segawasho0825pro@gmail.com')
+  User.create!(
+    name: '管理者B',
+    email: 'segawasho0825pro@gmail.com',
+    password: 'password',
+    password_confirmation: 'password',
+    is_admin: true,
+    role_id: Role.last.id,
+    industry_id: Industry.last.id
+  )
+  puts "✅ 管理者B 登録完了"
 end

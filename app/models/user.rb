@@ -17,8 +17,15 @@ class User < ApplicationRecord
   private
 
   def create_default_statuses
-    %w[未着手 完了].each do |name|
-      Status.find_or_create_by!(user_id: id, name: name)
+    statuses_data = [
+      { name: '未着手', fixed: false, sort_order: 1 },
+      { name: '完了', fixed: true, sort_order: 999 } # 完了は常に最後
+    ]
+
+    statuses_data.each do |status_attrs|
+      statuses.create!(status_attrs)
     end
   end
+
+
 end

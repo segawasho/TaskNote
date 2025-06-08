@@ -2,7 +2,7 @@ class Api::CustomersController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    render json: current_user.customers.where(deleted_at: nil)
+    render json: current_user.customers
   end
 
   def create
@@ -25,7 +25,13 @@ class Api::CustomersController < ApplicationController
 
   def destroy
     customer = current_user.customers.find(params[:id])
-    customer.update(deleted_at: Time.current)
+
+    if customer.tasks.exists?
+      render json: { error: 'この顧客はタスクに使われている為削除できません。' }, status: :unprocessable_entity
+      return
+    end
+
+    customer.destroy!
     head :no_content
   end
 
