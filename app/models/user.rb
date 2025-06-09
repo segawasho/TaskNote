@@ -6,6 +6,7 @@ class User < ApplicationRecord
   has_many :statuses, dependent: :destroy
   has_many :categories, dependent: :destroy
   has_many :customers, dependent: :destroy
+  has_many :memos, dependent: :destroy
 
   after_create :create_default_statuses
 

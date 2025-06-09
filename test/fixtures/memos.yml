@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  body: MyText
+  memo_date: 2025-06-09
+  archived: false
+  company: one
+  user: one
+
+two:
+  title: MyString
+  body: MyText
+  memo_date: 2025-06-09
+  archived: false
+  company: two
+  user: two

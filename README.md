@@ -20,6 +20,27 @@ TaskNote は Rails API + Vite React SPA で構築された業務タスク＆メ�
 
 ---
 
+## 📚 フロントエンド依存パッケージ
+
+- 本アプリでは以下の主要ライブラリを使用しています：
+  - [`@dnd-kit`](https://github.com/clauderic/dnd-kit): タスクやマスタのドラッグ＆ドロップ UI を実現
+    - core: v6.3.1
+    - sortable: v10.0.0
+    - utilities: v3.2.2
+  - [`chart.js`](https://www.chartjs.org/): ダッシュボード等でのグラフ描画用（v4.4.9）
+  - [`react-chartjs-2`](https://react-chartjs-2.js.org/): React 向けの chart.js ラッパー（v5.3.0）
+
+- その他、主要な依存ライブラリ：
+  - React 18.2.0 / Vite 4.5.2 / React Router DOM 6.30.1 / TailwindCSS 3.3.5 など
+
+### 🎯 バージョン固定について
+
+- `package.json` ではすべての依存関係を `"^"` なしで**明示的なバージョン指定**としています。
+  - これにより、開発・本番環境間の差異や破壊的変更による依存バグを防ぎ、**安定したビルド環境**を維持します。
+  - 例: `"react": "18.2.0"`（`^18.2.0`ではない）
+
+---
+
 ## 🔐 認証の仕組み（JWT + Refreshトークン）
 
 - 会員登録（`POST /api/signup`）やログイン（`POST /api/login`）時にトークンを発行

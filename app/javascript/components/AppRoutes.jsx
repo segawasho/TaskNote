@@ -12,6 +12,8 @@ import TaskList from '../components/tasks/TaskList';
 import CustomerMaster from '../components/master/CustomerMaster';
 import CategoryMaster from '../components/master/CategoryMaster';
 import StatusMaster from '../components/master/StatusMaster';
+import MemoList from '../components/memos/MemoList';
+import MemoForm from '../components/memos/MemoForm';
 
 
 
@@ -119,6 +121,33 @@ const AppRoutes = () => {
             element={
               <PageLayout user={user}>
                 <TaskList user={user} />
+              </PageLayout>
+            }
+          />
+          {/* メモリスト */}
+          <Route
+            path="/memos"
+            element={
+              <PageLayout user={user}>
+                <MemoList user={user} />
+              </PageLayout>
+            }
+          />
+          {/* メモ新規作成 */}
+          <Route
+            path="/memos/new"
+            element={
+              <PageLayout user={user}>
+                <MemoForm mode="create" />
+              </PageLayout>
+            }
+          />
+          {/* メモ編集 */}
+          <Route
+            path="/memos/:id/edit"
+            element={
+              <PageLayout user={user}>
+                <MemoForm mode="edit" />
               </PageLayout>
             }
           />

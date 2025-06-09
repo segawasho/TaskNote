@@ -22,6 +22,8 @@ Rails.application.routes.draw do
       resources :progress_comments, only: [:index]
     end
     resources :progress_comments, only: [:create, :update, :destroy]
+    
+    resources :memos
 
     # 翔メモ dashboard/summary どうするか検討
   end
