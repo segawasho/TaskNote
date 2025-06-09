@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ToastContext } from '../contexts/ToastContext';
 import { ModalContext } from '../contexts/ModalContext';
+import Dashboard from '../dashboard/Dashboard';
 
 
 const TopPage = ({ user }) => {
@@ -40,6 +41,9 @@ const TopPage = ({ user }) => {
 
       {/* メインコンテンツ */}
       <div className="max-w-3xl w-full space-y-10">
+
+
+        <Dashboard />
 
 
         {/* メイン機能 */}

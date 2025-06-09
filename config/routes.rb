@@ -5,6 +5,7 @@ Rails.application.routes.draw do
     post '/refresh_token', to: 'tokens#create'
     delete '/logout', to: 'sessions#destroy'
     get '/current_user',  to: 'users#show'
+    get 'dashboard/summary', to: 'dashboard#summary'
 
     resources :roles, only: [:index]
     resources :industries, only: [:index]
@@ -22,10 +23,9 @@ Rails.application.routes.draw do
       resources :progress_comments, only: [:index]
     end
     resources :progress_comments, only: [:create, :update, :destroy]
-    
+
     resources :memos
 
-    # 翔メモ dashboard/summary どうするか検討
   end
 
   # API以外のリクエスト（React SPA）は全部 index.html に返す
