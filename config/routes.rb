@@ -18,7 +18,10 @@ Rails.application.routes.draw do
         patch :reorder
       end
     end
-    resources :tasks
+    resources :tasks, only: [:index, :create, :update, :destroy] do
+      resources :progress_comments, only: [:index]
+    end
+    resources :progress_comments, only: [:create, :update, :destroy]
 
     # 翔メモ dashboard/summary どうするか検討
   end

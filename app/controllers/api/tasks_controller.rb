@@ -3,7 +3,6 @@ class Api::TasksController < ApplicationController
 
   def index
     tasks = current_user.tasks.includes(:category, :customer, :status)
-    tasks = tasks.where(customer_id: params[:customer_id]) if params[:customer_id].present?
 
     render json: tasks.as_json(include: [:category, :customer, :status])
   end
@@ -36,8 +35,8 @@ class Api::TasksController < ApplicationController
 
   def task_params
     params.require(:task).permit(
-      :title, :description, :due_date, :priority,
-      :customer_id, :category_id, :status_id, :is_done
+      :title, :description, :due_date,
+      :customer_id, :category_id, :status_id
     )
   end
 end

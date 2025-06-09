@@ -29,6 +29,7 @@ const CommentSection = ({ taskId,user }) => {
     apiFetch(`/api/progress_comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         task_id: taskId,
         content: newCommentContent
@@ -59,6 +60,7 @@ const CommentSection = ({ taskId,user }) => {
     apiFetch(`/api/progress_comments/${commentId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ content: editedCommentContent })
     })
       .then(res => {
@@ -80,28 +82,27 @@ const CommentSection = ({ taskId,user }) => {
   };
 
   // 削除モーダル
-  const confirmDeleteComment = () => {
+  const confirmDeleteComment = (commentId) => {
     showModal({
       title: 'コメント削除',
       message: 'このコメントを削除してもよろしいですか？',
-      onConfirm: handleDelete,
+      onConfirm: () => handleDeleteComment(commentId),
     });
   };
 
   const handleDeleteComment = (commentId) => {
-    authFetch(`/api/progress_comments/${commentId}`, {
+    apiFetch(`/api/progress_comments/${commentId}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include'
     })
       .then(() => {
         setComments((prev) => prev.filter((c) => c.id !== commentId));
         showToast('コメントを削除しました', 'success');
-        closeModal();
       })
       .catch((err) => {
         console.error('コメント削除エラー:', err);
         showToast('削除に失敗しました', 'error');
-        closeModal();
       });
   };
 
@@ -115,19 +116,40 @@ const CommentSection = ({ taskId,user }) => {
 
   return (
     <div className="mt-4 space-y-3">
+      {/* コメント入力欄（上に移動 & カード調） */}
+      <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">コメントを追加</h4>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <textarea
+            value={newCommentContent}
+            onChange={(e) => setNewCommentContent(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="コメントを入力（Ctrl+Enterで送信）"
+            className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm resize-none"
+            rows={2}
+          />
+          <button
+            onClick={handleAddComment}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm w-full sm:w-auto"
+          >
+            送信
+          </button>
+        </div>
+      </div>
+
       {/* コメント一覧 */}
       <ul className="space-y-2">
-        {comments.map(comment => (
-          <li key={comment.id} className="bg-gray-50 border border-gray-200 rounded p-3 text-sm">
+        {comments.map((comment) => (
+          <li key={comment.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm text-sm">
             {editingCommentId === comment.id ? (
               <div className="space-y-2">
                 <textarea
                   value={editedCommentContent}
                   onChange={(e) => setEditedCommentContent(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-2 py-1"
+                  className="w-full border border-gray-300 rounded px-2 py-1 resize-none"
                   rows={2}
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleUpdateComment(comment.id)}
                     className="bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600"
@@ -146,9 +168,9 @@ const CommentSection = ({ taskId,user }) => {
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start gap-2">
                 <p className="text-gray-700 flex-1 whitespace-pre-wrap">{comment.content}</p>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                   <button
                     onClick={() => handleEditComment(comment.id, comment.content)}
                     className="bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600"
@@ -156,8 +178,8 @@ const CommentSection = ({ taskId,user }) => {
                     編集
                   </button>
                   <button
+                    onClick={() => confirmDeleteComment(comment.id)}
                     className="bg-red-500 text-white text-xs px-3 py-1 rounded hover:bg-red-600"
-                    onClick={confirmDeleteComment}
                   >
                     削除
                   </button>
@@ -167,24 +189,6 @@ const CommentSection = ({ taskId,user }) => {
           </li>
         ))}
       </ul>
-
-      {/* コメント入力欄 */}
-      <div className="flex gap-2">
-        <textarea
-          value={newCommentContent}
-          onChange={(e) => setNewCommentContent(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="コメントを入力（Ctrl+Enterで送信）"
-          className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm"
-          rows={2}
-        />
-        <button
-          onClick={handleAddComment}
-          className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm"
-        >
-          送信
-        </button>
-      </div>
     </div>
   );
 

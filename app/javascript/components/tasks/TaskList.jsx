@@ -7,7 +7,7 @@ import { ModalContext } from '../contexts/ModalContext';
 const TaskList = ({user}) => {
   const [tasks, setTasks] = useState([]);
 
-  const [companies, setCompanies] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [statuses, setStatuses] = useState([]);
 
@@ -20,15 +20,15 @@ const TaskList = ({user}) => {
   const [editedDescription, setEditedDescription] = useState('');
   const [editedDueDate, setEditedDueDate] = useState('');
 
-  const [newTaskCompanyId, setNewTaskCompanyId] = useState('');
+  const [newTaskCustomerId, setNewTaskCustomerId] = useState('');
   const [newTaskCategoryId, setNewTaskCategoryId] = useState('');
   const [newTaskStatusId, setNewTaskStatusId] = useState('');
 
-  const [editedCompanyId, setEditedCompanyId] = useState('');
+  const [editedCustomerId, setEditedCustomerId] = useState('');
   const [editedCategoryId, setEditedCategoryId] = useState('');
   const [editedStatusId, setEditedStatusId] = useState('');
 
-  const [filterCompanyId, setFilterCompanyId] = useState('');
+  const [filterCustomerId, setFilterCustomerId] = useState('');
   const [filterCategoryId, setFilterCategoryId] = useState('');
   const [filterStatusId, setFilterStatusId] = useState('');
 
@@ -62,41 +62,50 @@ const TaskList = ({user}) => {
   const handleCreateTask = (e) => {
     e.preventDefault();
 
+    const payload = {
+      task: {
+        title: newTaskTitle,
+        description: newTaskDescription,
+        due_date: newTaskDueDate,
+        customer_id: newTaskCustomerId ? Number(newTaskCustomerId) : null,
+        category_id: newTaskCategoryId ? Number(newTaskCategoryId) : null,
+        status_id: newTaskStatusId ? Number(newTaskStatusId) : null
+      }
+    };
+
+    console.log("📤 payload", payload);
+
     apiFetch('/api/tasks', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        task: {
-          title: newTaskTitle,
-          description: newTaskDescription,
-          due_date: newTaskDueDate,
-          company_id: newTaskCompanyId,
-          category_id: newTaskCategoryId,
-          status_id: newTaskStatusId
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload)
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) {
+          console.error('⛔️ サーバエラー:', data);
+          throw new Error(JSON.stringify(data.errors || data));
         }
+        return data;
       })
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Network response was not ok');
-      return response.json();
-    })
-    .then(() => {
-      setNewTaskTitle('');
-      setNewTaskDescription('');
-      setNewTaskDueDate('');
-      setNewTaskCompanyId('');
-      setNewTaskCategoryId('');
-      setNewTaskStatusId('');
-      showToast('新規タスクを追加しました', 'success');
-      fetchTasks();
-    })
-    .catch((error) => {
-      console.error('Error creating task:', error);
-      showToast('新規タスクの追加に失敗しました', 'error');
-    });
+      .then(() => {
+        // フォームリセット
+        setNewTaskTitle('');
+        setNewTaskDescription('');
+        setNewTaskDueDate('');
+        setNewTaskCustomerId('');
+        setNewTaskCategoryId('');
+        setNewTaskStatusId('');
+        showToast('新規タスクを追加しました', 'success');
+        fetchTasks();
+      })
+      .catch((error) => {
+        console.error('⚠️ タスク作成エラー:', error);
+        showToast(`追加失敗: ${error.message}`, 'error');
+      });
   };
+
 
   const handleUpdate = (id) => {
     apiFetch(`/api/tasks/${id}`, {
@@ -104,14 +113,15 @@ const TaskList = ({user}) => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({
         task: {
           title: editedTitle,
           description: editedDescription,
           due_date: editedDueDate,
-          company_id: editedCompanyId,
-          category_id: editedCategoryId,
-          status_id: editedStatusId
+          customer_id: editedCustomerId ? Number(editedCustomerId) : null,
+          category_id: editedCategoryId ? Number(editedCategoryId) : null,
+          status_id: editedStatusId ? Number(editedStatusId) : null
         }
       })
     })
@@ -122,10 +132,9 @@ const TaskList = ({user}) => {
     .then(() => {
       setEditingTaskId(null);
       setEditedTitle('');
-      setEditedTitle('');
       setEditedDescription('');
       setEditedDueDate('');
-      setEditedCompanyId('');
+      setEditedCustomerId('');
       setEditedCategoryId('');
       setEditedStatusId('');
       showToast('タスクを更新しました', 'success');
@@ -138,11 +147,11 @@ const TaskList = ({user}) => {
   };
 
   // 削除モーダル
-  const confirmDelete = () => {
+  const confirmDelete = (id) => {
     showModal({
       title: 'タスク削除',
       message: 'このタスクを削除してもよろしいですか？',
-      onConfirm: handleDelete,
+      onConfirm: () => handleDelete(id)
     });
   };
 
@@ -150,6 +159,7 @@ const TaskList = ({user}) => {
     apiFetch(`/api/tasks/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include'
     })
       .then((response) => {
         if (!response.ok) throw new Error('Network response was not ok');
@@ -166,51 +176,24 @@ const TaskList = ({user}) => {
 
   const fetchMasterData = async () => {
     try {
-      const [companiesRes, categoriesRes, statusesRes] = await Promise.all([
-        apiFetch('/api/companies'),
+      const [customersRes, categoriesRes, statusesRes] = await Promise.all([
+        apiFetch('/api/customers'),
         apiFetch('/api/categories'),
         apiFetch('/api/statuses'),
       ]);
-      const [companies, categories, statuses] = await Promise.all([
-        companiesRes.json(),
+      const [customers, categories, statuses] = await Promise.all([
+        customersRes.json(),
         categoriesRes.json(),
         statusesRes.json(),
       ]);
       // 自分の企業、カテゴリ、ステータスのみ
-      setCompanies(companies.filter(c => !c.deleted_at && c.user_id === user.id));
-      setCategories(categories.filter(c => !c.deleted_at && c.user_id === user.id));
-      setStatuses(statuses.filter(s => !s.deleted_at && s.user_id === user.id));
+      setCustomers(customers.filter(c => c.user_id === user.id));
+      setCategories(categories.filter(c => c.user_id === user.id));
+      setStatuses(statuses.filter(s => s.user_id === user.id));
     } catch (error) {
       console.error('マスタデータの取得に失敗しました:', error);
       showToast('マスタデータの取得に失敗しました', 'error');
     }
-  };
-
-  const toggleDone = (task) => {
-    const newStatusId = task.status_id === 10 ? 1 : 10;
-
-    apiFetch(`/api/tasks/${task.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ task: { status_id: newStatusId } }),
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('更新失敗');
-        return res.json();
-      })
-      .then(() => {
-        fetchTasks();
-        showToast(
-          newStatusId === 10 ? 'タスクを完了にしました' : 'タスクを未完了に戻しました',
-          'success'
-        );
-      })
-      .catch(err => {
-        console.error('完了状態更新エラー:', err);
-        showToast('完了状態の更新に失敗しました', 'error');
-      });
   };
 
 
@@ -275,10 +258,10 @@ const TaskList = ({user}) => {
               onChange={(e) => setNewTaskDueDate(e.target.value)}
               className="border rounded px-3 py-2"
             />
-            <select value={newTaskCompanyId} onChange={(e) => setNewTaskCompanyId(Number(e.target.value))} className="border rounded px-3 py-2">
+            <select value={newTaskCustomerId} onChange={(e) => setNewTaskCustomerId(Number(e.target.value))} className="border rounded px-3 py-2">
               <option value="">企業を選択</option>
-              {companies.map(company => (
-                <option key={company.id} value={company.id}>{company.name}</option>
+              {customers.map(customer => (
+                <option key={customer.id} value={customer.id}>{customer.name}</option>
               ))}
             </select>
             <select value={newTaskCategoryId} onChange={(e) => setNewTaskCategoryId(Number(e.target.value))} className="border rounded px-3 py-2">
@@ -318,10 +301,10 @@ const TaskList = ({user}) => {
           <div className="flex flex-wrap gap-4">
             <label className="flex flex-col text-sm text-gray-600">
               企業
-              <select value={filterCompanyId} onChange={(e) => setFilterCompanyId(e.target.value)} className="border rounded px-2 py-1">
+              <select value={filterCustomerId} onChange={(e) => setFilterCustomerId(e.target.value)} className="border rounded px-2 py-1">
                 <option value="">すべて</option>
-                {companies.map(company => (
-                  <option key={company.id} value={company.id}>{company.name}</option>
+                {customers.map(customer => (
+                  <option key={customer.id} value={customer.id}>{customer.name}</option>
                 ))}
               </select>
             </label>
@@ -384,11 +367,11 @@ const TaskList = ({user}) => {
         {tasks
           .filter(task => {
             return (
-              (filterCompanyId === '' || task.company_id === Number(filterCompanyId)) &&
+              (filterCustomerId === '' || task.customer_id === Number(filterCustomerId)) &&
               (filterCategoryId === '' || task.category_id === Number(filterCategoryId)) &&
               (filterStatusId === '' || task.status_id === Number(filterStatusId)) &&
-              (showDoneFilter === 'not_done' ? task.status_id !== 10 :
-               showDoneFilter === 'done' ? task.status_id === 10 : true)
+              (showDoneFilter === 'not_done' ? !(task.status && task.status.fixed) :
+               showDoneFilter === 'done' ? (task.status && task.status.fixed) : true)
             );
           })
           .sort((a, b) => {
@@ -401,143 +384,116 @@ const TaskList = ({user}) => {
             return b.id - a.id; // 登録順
           })
           .map(task => (
-            <li key={task.id} className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm space-y-2 min-h-[460px] flex flex-col justify-between">
-              {editingTaskId === task.id ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="タイトル"
-                  />
-                  <textarea
-                    value={editedDescription}
-                    onChange={(e) => setEditedDescription(e.target.value)}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder="詳細"
-                  ></textarea>
-                  <input
-                    type="date"
-                    value={editedDueDate}
-                    onChange={(e) => setEditedDueDate(e.target.value)}
-                    className="w-full border rounded px-3 py-2"
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <select value={editedCompanyId} onChange={(e) => setEditedCompanyId(Number(e.target.value))} className="border rounded px-2 py-1">
-                      <option value="">企業を選択</option>
-                      {companies.map(company => (
-                        <option key={company.id} value={company.id}>{company.name}</option>
-                      ))}
-                    </select>
-                    <select value={editedCategoryId} onChange={(e) => setEditedCategoryId(Number(e.target.value))} className="border rounded px-2 py-1">
-                      <option value="">カテゴリを選択</option>
-                      {categories.map(category => (
-                        <option key={category.id} value={category.id}>{category.name}</option>
-                      ))}
-                    </select>
-                    <select value={editedStatusId} onChange={(e) => setEditedStatusId(Number(e.target.value))} className="border rounded px-2 py-1">
-                      <option value="">ステータスを選択</option>
-                      {statuses.map(status => (
-                        <option key={status.id} value={status.id}>{status.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => handleUpdate(task.id)} className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">更新</button>
-                    <button onClick={() => setEditingTaskId(null)} className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">キャンセル</button>
-                  </div>
+            <li key={task.id} className="bg-white border border-gray-300 rounded-xl p-4 shadow-md space-y-3 flex flex-col justify-between min-h-[480px]">
+            {editingTaskId === task.id ? (
+              <div className="space-y-3">
+                {/* 編集モード */}
+                <input
+                  type="text"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                  placeholder="タイトル"
+                />
+                <textarea
+                  value={editedDescription}
+                  onChange={(e) => setEditedDescription(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm resize-none"
+                  placeholder="詳細"
+                  rows={3}
+                />
+                <input
+                  type="date"
+                  value={editedDueDate}
+                  onChange={(e) => setEditedDueDate(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <select value={editedCustomerId} onChange={(e) => setEditedCustomerId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
+                    <option value="">企業を選択</option>
+                    {customers.map(customer => (
+                      <option key={customer.id} value={customer.id}>{customer.name}</option>
+                    ))}
+                  </select>
+                  <select value={editedCategoryId} onChange={(e) => setEditedCategoryId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
+                    <option value="">カテゴリを選択</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>{category.name}</option>
+                    ))}
+                  </select>
+                  <select value={editedStatusId} onChange={(e) => setEditedStatusId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
+                    <option value="">ステータスを選択</option>
+                    {statuses.map(status => (
+                      <option key={status.id} value={status.id}>{status.name}</option>
+                    ))}
+                  </select>
                 </div>
-              ) : (
-                <>
-                  <div className="flex justify-between items-start flex-wrap sm:flex-nowrap gap-2">
-                    <div className="flex-1 min-w-0">
-
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        <span className={`text-xs px-2 py-1 rounded ${getDueDateClass(task.due_date)}`}>
-                          締切: {task.due_date || '未設定'}
-                        </span>
-                        <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                          {task.company?.name || '企業: 未設定'}
-                        </span>
-                        <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                          {task.category?.name || 'カテゴリ: 未設定'}
-                        </span>
-                        <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                          {task.status?.name || 'ステータス: 未設定'}
-                        </span>
-                      </div>
-
-
-
-                      <h3 className="text-lg font-semibold text-gray-800 break-words">{task.title}</h3>
-                      {task.description && (
-                        <p className="text-base text-gray-500 font-medium leading-relaxed break-words">
-                          詳細: {task.description}
-                        </p>
-                      )}
-
-                    </div>
-
-                    {/* 完了状態ボタン */}
-                    {task.status_id !== 10 ? (
-                      <button
-                        onClick={() => {
-                          if (window.confirm('このタスクを完了にしますか？')) {
-                            toggleDone(task);
-                          }
-                        }}
-                        className="bg-green-500 text-white text-sm px-4 py-2 rounded hover:bg-green-600 whitespace-nowrap min-w-[80px]"
-                      >
-                        完了
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          if (window.confirm('未完了に戻しますか？')) {
-                            toggleDone(task);
-                          }
-                        }}
-                        className="bg-yellow-500 text-white text-sm px-4 py-2 rounded hover:bg-yellow-600 whitespace-nowrap min-w-[100px]"
-                      >
-                        未完了に戻す
-                      </button>
-                    )}
-
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => handleUpdate(task.id)} className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                    更新
+                  </button>
+                  <button onClick={() => setEditingTaskId(null)} className="px-4 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 text-sm">
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* 表示モード */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    <span className={`px-2 py-1 rounded ${getDueDateClass(task.due_date)}`}>
+                      締切: {task.due_date || '未設定'}
+                    </span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                      {task.customer?.name || '企業: 未設定'}
+                    </span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                      {task.category?.name || 'カテゴリ: 未設定'}
+                    </span>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                      {task.status?.name || 'ステータス: 未設定'}
+                    </span>
                   </div>
 
+                  <h3 className="text-lg font-semibold text-gray-900 break-words">{task.title}</h3>
 
-                  <div className="flex gap-2 text-sm">
-                    <button
-                      onClick={() => {
-                        setEditingTaskId(task.id);
-                        setEditedTitle(task.title);
-                        setEditedDescription(task.description || '');
-                        setEditedDueDate(task.due_date || '');
-                        setEditedCompanyId(task.company_id || '');
-                        setEditedCategoryId(task.category_id || '');
-                        setEditedStatusId(task.status_id || '');
-                      }}
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
-                      編集
-                    </button>
-                    <button
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                      onClick={confirmDelete}
-                    >
-                      削除
-                    </button>
-                  </div>
+                  {task.description && (
+                    <p className="text-sm text-gray-700 leading-relaxed break-words">
+                      {task.description}
+                    </p>
+                  )}
+                </div>
 
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <button
+                    onClick={() => {
+                      setEditingTaskId(task.id);
+                      setEditedTitle(task.title);
+                      setEditedDescription(task.description || '');
+                      setEditedDueDate(task.due_date || '');
+                      setEditedCustomerId(task.customer_id || '');
+                      setEditedCategoryId(task.category_id || '');
+                      setEditedStatusId(task.status_id || '');
+                    }}
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                  >
+                    編集
+                  </button>
+                  <button
+                    onClick={() => confirmDelete(task.id)}
+                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                  >
+                    削除
+                  </button>
+                </div>
 
-                  <div className="mt-2 max-h-[100px] overflow-y-auto border-t pt-2">
-                    <CommentSection taskId={task.id} user={user} />
-                  </div>
-
-                </>
-              )}
-            </li>
+                <div className="mt-3 border-t pt-3">
+                  <CommentSection taskId={task.id} user={user} />
+                </div>
+              </>
+            )}
+          </li>
         ))}
       </ul>
     </div>

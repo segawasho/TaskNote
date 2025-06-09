@@ -1,6 +1,9 @@
 # TaskNote 開発構成 README
 
-## Rails API + Vite React SPA
+## 概要
+
+TaskNote は Rails API + Vite React SPA で構築された業務タスク＆メモ管理アプリです。
+タスク管理に使える「顧客」「カテゴリ」「ステータス」はそれぞれユーザー自身がマスタとして登録してお使い頂ける柔軟な設計です。
 
 ---
 

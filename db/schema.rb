@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_08_125731) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_09_043102) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -37,6 +37,16 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_08_125731) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["sort_order"], name: "index_industries_on_sort_order"
+  end
+
+  create_table "progress_comments", force: :cascade do |t|
+    t.bigint "task_id", null: false
+    t.bigint "user_id", null: false
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["task_id"], name: "index_progress_comments_on_task_id"
+    t.index ["user_id"], name: "index_progress_comments_on_user_id"
   end
 
   create_table "role_categories", force: :cascade do |t|
@@ -72,9 +82,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_08_125731) do
     t.text "description"
     t.date "due_date"
     t.bigint "user_id", null: false
-    t.bigint "category_id", null: false
-    t.bigint "customer_id", null: false
-    t.bigint "status_id", null: false
+    t.bigint "category_id"
+    t.bigint "customer_id"
+    t.bigint "status_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_tasks_on_category_id"
@@ -110,6 +120,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_08_125731) do
 
   add_foreign_key "categories", "users"
   add_foreign_key "customers", "users"
+  add_foreign_key "progress_comments", "tasks"
+  add_foreign_key "progress_comments", "users"
   add_foreign_key "roles", "role_categories"
   add_foreign_key "statuses", "users"
   add_foreign_key "tasks", "categories"

@@ -1,12 +1,8 @@
 class Task < ApplicationRecord
   belongs_to :user
-  belongs_to :category
-  belongs_to :customer
-  belongs_to :status
-
-  scope :done, -> { where(status_id: 10) }
-  scope :not_done, -> { where.not(status_id: 10) }
+  belongs_to :category, optional: true
+  belongs_to :customer, optional: true
+  belongs_to :status, optional: true
 
   validates :title, presence: true, length: { maximum: 50 }
-  validates :due_date, presence: true
 end

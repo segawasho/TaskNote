@@ -2,6 +2,7 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :tasks, dependent: :destroy
+  has_many :progress_comments, dependent: :destroy
   has_many :statuses, dependent: :destroy
   has_many :categories, dependent: :destroy
   has_many :customers, dependent: :destroy
