@@ -1,3 +1,13 @@
+/**
+ * api.js
+ * APIリクエスト用のラッパー関数（apiFetch）を定義。
+ *
+ * - fetch() に共通オプション（credentials: includeなど）を付加
+ * - 401エラー時に /api/refresh_token で再認証を試みる
+ * - 再認証が成功すれば元のリクエストを再送
+ * - 失敗時は例外を投げる
+ */
+
 export const apiFetch = async (url, options = {}) => {
   // ① 通常のfetch
   // ② 401エラーならrefresh_token使って再発行を試みる

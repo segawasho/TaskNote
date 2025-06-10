@@ -1,0 +1,18 @@
+/*
+  Tailwind CSSでTipTapのエディタ部分(.ProseMirror)を装飾するためのCSS
+  - Tailwindの @apply を使ってスタイルを適用
+  - tailwind.config.js の content に .css を含める必要あり
+  - このファイルは MemoEditor.jsx から import されている
+*/
+
+.ProseMirror {
+  @apply p-4 min-h-[300px] outline-none border border-gray-300 rounded bg-white text-sm;
+}
+
+.ProseMirror a {
+  @apply text-blue-600 underline;
+}
+
+.ProseMirror:focus {
+  @apply ring-2 ring-blue-300;
+}

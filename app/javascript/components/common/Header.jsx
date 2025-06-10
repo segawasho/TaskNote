@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from './logo-tasknote.png';
+import logo from './logo-tasknote-2.png';
 import { ToastContext } from '../contexts/ToastContext';
 import { ModalContext } from '../contexts/ModalContext';
 

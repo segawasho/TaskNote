@@ -1,3 +1,14 @@
+/**
+ * AppRoutes.jsx
+ * アプリ全体のルーティング設定を行うコンポーネント。
+ *
+ * - ログイン済ユーザーと非ログインユーザーでルートを切り替える
+ * - 初期表示時に `/api/current_user` を叩き、認証状態を確認
+ * - トークン失効時は `/api/refresh_token` により自動再認証を試みる
+ * - 各画面は PageLayout に包まれて表示される
+ */
+
+
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
@@ -8,6 +19,7 @@ import TopPage from '../components/pages/TopPage';
 import Signup from '../components/pages/Signup';
 import Login from '../components/pages/Login';
 import Profile from '../components/pages/Profile';
+import Settings from '../components/pages/Settings';
 import TaskList from '../components/tasks/TaskList';
 import CustomerMaster from '../components/master/CustomerMaster';
 import CategoryMaster from '../components/master/CategoryMaster';
@@ -85,6 +97,15 @@ const AppRoutes = () => {
             element={
               <PageLayout user={user}>
                 <Profile user={user} />
+              </PageLayout>
+            }
+          />
+          {/* 設定画面 */}
+          <Route
+            path="/settings"
+            element={
+              <PageLayout user={user}>
+                <Settings user={user} />
               </PageLayout>
             }
           />

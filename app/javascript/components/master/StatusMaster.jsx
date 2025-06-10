@@ -48,9 +48,7 @@ const SortableItem = ({
     >
       <div className="flex items-center gap-3">
         <div {...listeners} className="cursor-grab text-gray-400">☰</div>
-        <div className="cursor-grab text-gray-400">ID:{status.id}：</div>
-        <div className="cursor-grab text-gray-400">表示順:{status.sort_order}：</div>
-        <div className="cursor-grab text-gray-400">fixed:{status.fixed}：</div>
+        <div className="cursor-grab text-gray-400">{status.sort_order}：</div>
 
         {isEditing ? (
           <input

@@ -1,45 +1,43 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const FooterNav = ({ user, className = '' }) => {
+import HomeIcon from './icon/home.png';
+import MemoIcon from './icon/memo.png';
+import AddIcon from './icon/plus.png';
+import TaskIcon from './icon/task.png';
+import SettingIcon from './icon/setting.png';
+
+
+const FooterNav = () => {
   const location = useLocation();
 
   const navItems = [
-    {
-      path: '/tasks',
-      label: '📋 タスク一覧',
-      bgColor: 'bg-blue-500',
-    },
-    {
-      path: '/memos',
-      label: '📝 メモ一覧',
-      bgColor: 'bg-green-500',
-    },
-    {
-      path: '/',
-      label: '🏠 ホーム',
-      bgColor: 'bg-gray-600',
-    },
+    { path: '/', label: 'ホーム', icon: HomeIcon },
+    { path: '/memos', label: 'ノート', icon: MemoIcon },
+    { path: '/add', label: '追加', icon: AddIcon },
+    { path: '/tasks', label: 'タスク', icon: TaskIcon },
+    { path: '/settings', label: '設定', icon: SettingIcon },
   ];
 
   return (
-    <footer className={`fixed bottom-0 left-0 w-full h-14 z-50 ${className}`}>
-      <div className="flex h-full text-center bg-white shadow-inner">
+    <footer className="fixed bottom-0 left-0 w-full z-50 bg-gray-100 border-t border-gray-200">
+      <nav className="flex justify-between px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex-1 h-full flex flex-col items-center justify-center text-xs font-medium ${item.bgColor} text-white ${
-                isActive ? 'opacity-100' : 'opacity-100 hover:opacity-100'
+              className={`flex flex-col items-center justify-center flex-1 py-2 text-xs ${
+                isActive ? 'text-indigo-300 font-semibold' : 'text-gray-600'
               }`}
             >
-              {item.label}
+              <img src={item.icon} alt={item.label} className="w-6 h-6 mb-1" />
+              <span>{item.label}</span>
             </Link>
           );
         })}
-      </div>
+      </nav>
     </footer>
   );
 };

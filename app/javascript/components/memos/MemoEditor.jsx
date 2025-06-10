@@ -1,3 +1,11 @@
+/*
+  TipTapエディタのReact実装。
+  EditorContentの中にTipTapが自動で .ProseMirror を生成するため、
+  Tailwindスタイルを効かせるには、別CSS（memo-editor.css）で .ProseMirror を装飾する必要がある。
+
+  tailwind.config.js の content に .css を含めることを忘れずに！
+*/
+
 import React, { useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -5,6 +13,7 @@ import Bold from '@tiptap/extension-bold'
 import Italic from '@tiptap/extension-italic'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
+import './memo-editor.css';
 
 const MemoEditor = ({ content, onChange }) => {
   const editor = useEditor({
@@ -40,10 +49,11 @@ const MemoEditor = ({ content, onChange }) => {
       </div>
 
 
-      <EditorContent
-        editor={editor}
-        className="border border-gray-300 rounded px-3 py-2 w-full min-h-[300px] focus:outline-none"
-      />
+      <div className="memo-editor">
+        <EditorContent
+          editor={editor}
+        />
+      </div>
     </div>
   )
 }
