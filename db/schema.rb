@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_09_141619) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_11_140107) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -60,6 +60,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_09_141619) do
     t.index ["user_id"], name: "index_progress_comments_on_user_id"
   end
 
+  create_table "projects", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.date "start_date"
+    t.date "end_date"
+    t.bigint "customer_id"
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_projects_on_customer_id"
+    t.index ["user_id"], name: "index_projects_on_user_id"
+  end
+
   create_table "role_categories", force: :cascade do |t|
     t.string "name", null: false
     t.integer "sort_order", default: 0, null: false
@@ -98,8 +111,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_09_141619) do
     t.bigint "status_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "project_id"
+    t.date "start_date"
     t.index ["category_id"], name: "index_tasks_on_category_id"
     t.index ["customer_id"], name: "index_tasks_on_customer_id"
+    t.index ["project_id"], name: "index_tasks_on_project_id"
     t.index ["status_id"], name: "index_tasks_on_status_id"
     t.index ["user_id"], name: "index_tasks_on_user_id"
   end
@@ -135,10 +151,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_09_141619) do
   add_foreign_key "memos", "users"
   add_foreign_key "progress_comments", "tasks"
   add_foreign_key "progress_comments", "users"
+  add_foreign_key "projects", "customers"
+  add_foreign_key "projects", "users"
   add_foreign_key "roles", "role_categories"
   add_foreign_key "statuses", "users"
   add_foreign_key "tasks", "categories"
   add_foreign_key "tasks", "customers"
+  add_foreign_key "tasks", "projects"
   add_foreign_key "tasks", "statuses"
   add_foreign_key "tasks", "users"
   add_foreign_key "users", "industries"

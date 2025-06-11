@@ -24,6 +24,10 @@ Rails.application.routes.draw do
     end
     resources :progress_comments, only: [:create, :update, :destroy]
 
+    resources :projects do
+      resources :tasks, only: [:index]  # プロジェクト内のタスク取得API
+    end
+
     resources :memos
 
   end

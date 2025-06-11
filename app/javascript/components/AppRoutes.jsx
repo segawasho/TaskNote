@@ -26,6 +26,8 @@ import CategoryMaster from '../components/master/CategoryMaster';
 import StatusMaster from '../components/master/StatusMaster';
 import MemoList from '../components/memos/MemoList';
 import MemoForm from '../components/memos/MemoForm';
+import ProjectList from '../components/projects/ProjectList';
+import ProjectDetail from '../components/projects/ProjectDetail';
 
 
 
@@ -142,6 +144,25 @@ const AppRoutes = () => {
             element={
               <PageLayout user={user}>
                 <TaskList user={user} />
+              </PageLayout>
+            }
+          />
+          {/* プロジェクト一覧 */}
+          <Route
+            path="/projects"
+            element={
+              <PageLayout user={user}>
+                <ProjectList user={user} />
+              </PageLayout>
+            }
+          />
+
+          {/* プロジェクト詳細（gantt-task-reactを使ってWBS表示） */}
+          <Route
+            path="/projects/:id"
+            element={
+              <PageLayout user={user}>
+                <ProjectDetail user={user} />
               </PageLayout>
             }
           />

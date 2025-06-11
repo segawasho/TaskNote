@@ -1,5 +1,6 @@
 class Task < ApplicationRecord
   belongs_to :user
+  belongs_to :project, optional: true
   belongs_to :category, optional: true
   belongs_to :customer, optional: true
   belongs_to :status, optional: true

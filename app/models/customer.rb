@@ -1,6 +1,7 @@
 class Customer < ApplicationRecord
   belongs_to :user
   has_many :tasks, dependent: :nullify
+  has_many :projects, dependent: :nullify
   has_many :memos # メモに必須じゃないので、dependent: :destroyは無し。
 
   validates :name, presence: true, uniqueness: { scope: :user_id }, length: { maximum: 15 }

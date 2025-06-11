@@ -11,23 +11,28 @@ const TaskList = ({user}) => {
   const [categories, setCategories] = useState([]);
   const [statuses, setStatuses] = useState([]);
 
+  const [projects, setProjects] = useState([]);
+
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
+
+  const [newTaskProjectId, setNewTaskProjectId] = useState('');
+  const [newTaskCustomerId, setNewTaskCustomerId] = useState('');
+  const [newTaskCategoryId, setNewTaskCategoryId] = useState('');
+  const [newTaskStatusId, setNewTaskStatusId] = useState('');
 
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [editedDueDate, setEditedDueDate] = useState('');
 
-  const [newTaskCustomerId, setNewTaskCustomerId] = useState('');
-  const [newTaskCategoryId, setNewTaskCategoryId] = useState('');
-  const [newTaskStatusId, setNewTaskStatusId] = useState('');
-
+  const [editedProjectId, setEditedProjectId] = useState('');
   const [editedCustomerId, setEditedCustomerId] = useState('');
   const [editedCategoryId, setEditedCategoryId] = useState('');
   const [editedStatusId, setEditedStatusId] = useState('');
 
+  const [filterProjectId, setFilterProjectId] = useState('');
   const [filterCustomerId, setFilterCustomerId] = useState('');
   const [filterCategoryId, setFilterCategoryId] = useState('');
   const [filterStatusId, setFilterStatusId] = useState('');
@@ -69,7 +74,8 @@ const TaskList = ({user}) => {
         due_date: newTaskDueDate,
         customer_id: newTaskCustomerId ? Number(newTaskCustomerId) : null,
         category_id: newTaskCategoryId ? Number(newTaskCategoryId) : null,
-        status_id: newTaskStatusId ? Number(newTaskStatusId) : null
+        status_id: newTaskStatusId ? Number(newTaskStatusId) : null,
+        project_id: newTaskProjectId ? Number(newTaskProjectId) : null
       }
     };
 
@@ -121,7 +127,8 @@ const TaskList = ({user}) => {
           due_date: editedDueDate,
           customer_id: editedCustomerId ? Number(editedCustomerId) : null,
           category_id: editedCategoryId ? Number(editedCategoryId) : null,
-          status_id: editedStatusId ? Number(editedStatusId) : null
+          status_id: editedStatusId ? Number(editedStatusId) : null,
+          project_id: editedProjectId ? Number(editedProjectId) : null
         }
       })
     })
@@ -176,25 +183,28 @@ const TaskList = ({user}) => {
 
   const fetchMasterData = async () => {
     try {
-      const [customersRes, categoriesRes, statusesRes] = await Promise.all([
+      const [customersRes, categoriesRes, statusesRes, projectsRes] = await Promise.all([
         apiFetch('/api/customers'),
         apiFetch('/api/categories'),
         apiFetch('/api/statuses'),
+        apiFetch('/api/projects'),
       ]);
-      const [customers, categories, statuses] = await Promise.all([
+      const [customers, categories, statuses, projects] = await Promise.all([
         customersRes.json(),
         categoriesRes.json(),
         statusesRes.json(),
+        projectsRes.json(),
       ]);
-      // 自分の企業、カテゴリ、ステータスのみ
       setCustomers(customers.filter(c => c.user_id === user.id));
       setCategories(categories.filter(c => c.user_id === user.id));
       setStatuses(statuses.filter(s => s.user_id === user.id));
+      setProjects(projects.filter(p => p.user_id === user.id));
     } catch (error) {
       console.error('マスタデータの取得に失敗しました:', error);
       showToast('マスタデータの取得に失敗しました', 'error');
     }
   };
+
 
 
   // 締切日の色分け（本日以前）
@@ -258,6 +268,12 @@ const TaskList = ({user}) => {
               onChange={(e) => setNewTaskDueDate(e.target.value)}
               className="border rounded px-3 py-2"
             />
+            <select value={newTaskProjectId} onChange={(e) => setNewTaskProjectId(Number(e.target.value))} className="border rounded px-3 py-2">
+              <option value="">プロジェクトを選択</option>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>{project.name}</option>
+              ))}
+            </select>
             <select value={newTaskCustomerId} onChange={(e) => setNewTaskCustomerId(Number(e.target.value))} className="border rounded px-3 py-2">
               <option value="">企業を選択</option>
               {customers.map(customer => (
@@ -299,6 +315,15 @@ const TaskList = ({user}) => {
         <div className="bg-white p-4 rounded shadow space-y-3 mt-2">
           <h2 className="text-lg font-semibold text-gray-700">フィルター</h2>
           <div className="flex flex-wrap gap-4">
+            <label className="flex flex-col text-sm text-gray-600">
+              プロジェクト
+              <select value={filterProjectId} onChange={(e) => setFilterProjectId(e.target.value)} className="border rounded px-2 py-1">
+                <option value="">すべて</option>
+                {projects.map(project => (
+                  <option key={project.id} value={project.id}>{project.name}</option>
+                ))}
+              </select>
+            </label>
             <label className="flex flex-col text-sm text-gray-600">
               企業
               <select value={filterCustomerId} onChange={(e) => setFilterCustomerId(e.target.value)} className="border rounded px-2 py-1">
@@ -367,6 +392,7 @@ const TaskList = ({user}) => {
         {tasks
           .filter(task => {
             return (
+              (filterProjectId === '' || task.project_id === Number(filterProjectId)) &&
               (filterCustomerId === '' || task.customer_id === Number(filterCustomerId)) &&
               (filterCategoryId === '' || task.category_id === Number(filterCategoryId)) &&
               (filterStatusId === '' || task.status_id === Number(filterStatusId)) &&
@@ -409,6 +435,12 @@ const TaskList = ({user}) => {
                   className="w-full border rounded px-3 py-2 text-sm"
                 />
                 <div className="flex flex-wrap gap-2">
+                  <select value={editedProjectId} onChange={(e) => setEditedProjectId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
+                    <option value="">プロジェクトを選択</option>
+                    {projects.map(project => (
+                      <option key={project.id} value={project.id}>{project.name}</option>
+                    ))}
+                  </select>
                   <select value={editedCustomerId} onChange={(e) => setEditedCustomerId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
                     <option value="">企業を選択</option>
                     {customers.map(customer => (
@@ -472,6 +504,7 @@ const TaskList = ({user}) => {
                       setEditedTitle(task.title);
                       setEditedDescription(task.description || '');
                       setEditedDueDate(task.due_date || '');
+                      setEditedProjectId(task.project_id || '');
                       setEditedCustomerId(task.customer_id || '');
                       setEditedCategoryId(task.category_id || '');
                       setEditedStatusId(task.status_id || '');
