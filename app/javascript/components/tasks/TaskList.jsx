@@ -172,12 +172,10 @@ const TaskList = ({user}) => {
         if (!response.ok) throw new Error('Network response was not ok');
         setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
         showToast('タスクを削除しました', 'success');
-        closeModal();
       })
       .catch((error) => {
         console.error('Error deleting task:', error);
         showToast('タスクの削除に失敗しました', 'error');
-        closeModal();
       });
   };
 

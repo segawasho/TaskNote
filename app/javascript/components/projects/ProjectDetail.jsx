@@ -1,4 +1,9 @@
-// ProjectDetail.jsx
+// components/projects/
+//   ProjectDetail.jsx    ← 状態管理
+//   ProjectTimeline.jsx  ← 描画の大枠まとめ
+//   DraggableTaskBar.jsx ← DND本体＋リサイズ群
+//   projectUtils.js      ← 共通ロジック
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiFetch } from '../api';
@@ -14,13 +19,14 @@ import {
 } from "@dnd-kit/core";
 
 
-
+// ズーム倍率設定（1日あたりのpx幅）
 const ZOOM_LEVELS = {
   day: 50,
   week: 20,
   month: 8
 };
 
+// Taskを保存API（start_date, due_date, progress_rateのみ保存）
 const saveTask = async (task) => {
   try {
     const res = await apiFetch(`/api/tasks/${task.id}`, {
@@ -29,7 +35,8 @@ const saveTask = async (task) => {
       body: JSON.stringify({
         task: {
           start_date: task.start_date,
-          due_date: task.due_date
+          due_date: task.due_date,
+          progress_rate: task.progress_rate
         }
       })
     });
@@ -43,21 +50,24 @@ const saveTask = async (task) => {
 };
 
 // 以下、ProjectDetail定義部分
-
+// メインコンポーネント
 const ProjectDetail = ({ user }) => {
   const { id } = useParams();
   const sensors = useSensors(useSensor(PointerSensor));
 
+  // 各種state
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [zoom, setZoom] = useState('day'); // デフォルト日ビュー
 
+  // 初回マウント時にAPI取得
   useEffect(() => {
     fetchProject();
   }, []);
 
+  // プロジェクト詳細＆タスク一覧API取得
   const fetchProject = async () => {
     const res = await apiFetch(`/api/projects/${id}`);
     if (res.ok) {
@@ -69,6 +79,7 @@ const ProjectDetail = ({ user }) => {
     }
   };
 
+  // 日付未登録のタスクにtodayを補完する前処理
   const prepareTasks = (taskList) => {
     const today = dayjs().format("YYYY-MM-DD");
     return taskList.map(t => ({
@@ -78,6 +89,7 @@ const ProjectDetail = ({ user }) => {
     }));
   };
 
+  // 全タスクの最小〜最大日付範囲を決定
   const calcDateRange = (taskList) => {
     if (taskList.length === 0) {
       const today = dayjs();
@@ -93,10 +105,12 @@ const ProjectDetail = ({ user }) => {
     setEndDate(max);
   };
 
+  // 全体日数を計算
   const getTotalDays = () => {
     return endDate.diff(startDate, 'day') + 1;
   };
 
+  // 1タスクの横位置＆横幅計算（px）
   const calcBarStyle = (task) => {
     const taskStart = dayjs(task.start_date);
     const taskEnd = dayjs(task.due_date);
@@ -109,7 +123,7 @@ const ProjectDetail = ({ user }) => {
   };
 
 
-  // DNDドラッグ対応バー
+  // DNDドラッグバー（ドラッグ可能な本体）
   const DraggableBar = ({ task }) => {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
       id: task.id,
@@ -130,22 +144,33 @@ const ProjectDetail = ({ user }) => {
         ref={setNodeRef}
         {...listeners}
         {...attributes}
-        className="absolute bg-blue-500 h-6 rounded cursor-pointer"
+        className={`absolute h-6 rounded cursor-pointer ${task.status?.fixed ? 'bg-gray-400' : 'bg-blue-500'}`}
         style={calcStyle()}
       >
-        {/* 両サイドにハンドル追加 */}
+        {/* 進捗バー */}
+        <div
+          className={`h-full rounded-l flex items-center justify-center text-white text-xs font-bold
+            ${task.status?.fixed ? 'bg-gray-300' : 'bg-green-400'}`}
+          style={{ width: `${getProgressRate(task)}%` }}
+        >
+          {getProgressRate(task)}%
+        </div>
+
+        {/* 両サイドリサイズハンドル＆進捗(progress_rate)リサイズハンドル */}
         <LeftResizeHandle task={task} zoom={zoom} />
         <RightResizeHandle task={task} zoom={zoom} />
+        <ProgressResizeHandle task={task} zoom={zoom} startDate={startDate} />
       </div>
     );
   };
 
 
+  // ドラッグイベント処理（DND側全統括処理）
   const handleDragEnd = (event) => {
     const { active, delta } = event;
     const movedDays = Math.round(delta.x / ZOOM_LEVELS[zoom]);
 
-    // 通常移動 or リサイズの判定
+    // ① 左（start_date）リサイズ
     if (String(active.id).startsWith("resize-left-")) {
       const taskId = Number(active.id.replace("resize-left-", ""));
 
@@ -166,6 +191,7 @@ const ProjectDetail = ({ user }) => {
         })
       );
 
+    // ② 右(due_date)リサイズ
     } else if (String(active.id).startsWith("resize-right-")) {
       const taskId = Number(active.id.replace("resize-right-", ""));
 
@@ -186,6 +212,34 @@ const ProjectDetail = ({ user }) => {
         })
       );
 
+    // ③ 進捗率バーリサイズ
+    } else if (String(active.id).startsWith("resize-progress-")) {
+      const taskId = Number(active.id.replace("resize-progress-", ""));
+      const task = tasks.find(t => t.id === taskId);
+
+      const taskStart = dayjs(task.start_date);
+      const taskEnd = dayjs(task.due_date);
+      const totalDays = taskEnd.diff(taskStart, 'day') + 1;
+      const totalWidth = totalDays * ZOOM_LEVELS[zoom];
+
+      const movedPx = delta.x;
+      const movedPercent = (movedPx / totalWidth) * 100;
+
+      let newProgress = (task.progress_rate ?? 0) + movedPercent;
+      newProgress = Math.max(0, Math.min(100, Math.round(newProgress)));
+
+      const updatedTask = {
+        ...task,
+        progress_rate: newProgress
+      };
+
+      setTasks(prev =>
+        prev.map(t => t.id === taskId ? updatedTask : t)
+      );
+
+      saveTask(updatedTask);
+
+    // ④ 通常移動(Task全体)
     } else {
       const taskId = Number(active.id);
 
@@ -210,8 +264,13 @@ const ProjectDetail = ({ user }) => {
     }
   };
 
+  // 進捗率取得関数（完了なら常に100%固定）
+  const getProgressRate = (task) => {
+    return task.status?.fixed ? 100 : (task.progress_rate ?? 0);
+  };
 
 
+  // 左ハンドル
   const LeftResizeHandle = ({ task, zoom }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
       id: `resize-left-${task.id}`
@@ -232,7 +291,7 @@ const ProjectDetail = ({ user }) => {
     );
   };
 
-
+  // 右ハンドル
   const RightResizeHandle = ({ task, zoom, onResizeEnd }) => {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
       id: `resize-right-${task.id}`
@@ -254,8 +313,45 @@ const ProjectDetail = ({ user }) => {
   };
 
 
+  // 進捗率ハンドル
+  const ProgressResizeHandle = ({ task, zoom, startDate }) => {
+    const { attributes, listeners, setNodeRef, transform } = useDraggable({
+      id: `resize-progress-${task.id}`,
+    });
 
-  // 日付ヘッダー描画ロジック
+    const offsetX = transform ? transform.x : 0;
+
+    // 本体全体の日数
+    const taskStart = dayjs(task.start_date);
+    const taskEnd = dayjs(task.due_date);
+    const totalDays = taskEnd.diff(taskStart, 'day') + 1;
+    const totalWidth = totalDays * ZOOM_LEVELS[zoom];
+
+    // progressBarの横幅
+    const progressWidth = (task.progress_rate ?? 0) / 100 * totalWidth;
+
+    if (task.status?.fixed) {
+      return;
+
+    } else {
+
+      return (
+        <div
+          ref={setNodeRef}
+          {...attributes}
+          {...listeners}
+          className="absolute right-0 top-0 w-2 h-full bg-green-700 rounded-r cursor-ew-resize"
+          style={{
+            left: `${progressWidth}px`,
+            transform: `translateX(${offsetX}px)`
+          }}
+        />
+      );
+    }
+  };
+
+
+  // 日付ヘッダー描画ロジック（ズームモード別）
   const renderHeader = () => {
     if (zoom === 'day') {
       return (
@@ -298,8 +394,10 @@ const ProjectDetail = ({ user }) => {
     }
   };
 
+  // 読み込み判定
   if (!project || !startDate || !endDate) return <p>Loading...</p>;
 
+   // レンダリング本体
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
 
@@ -326,7 +424,7 @@ const ProjectDetail = ({ user }) => {
 
         {/* タスクバー */}
         <div className="relative" style={{ width: `${getTotalDays() * ZOOM_LEVELS[zoom]}px` }}>
-          {/* 背景の縦線 */}
+          {/* 縦グリッド背景 */}
           <div className="absolute top-0 left-0 h-full" style={{ width: `${getTotalDays() * ZOOM_LEVELS[zoom]}px` }}>
             {Array.from({ length: getTotalDays() }).map((_, i) => (
               <div
@@ -342,12 +440,13 @@ const ProjectDetail = ({ user }) => {
               />
             ))}
           </div>
-          {/* バー */}
+          {/* タスク群 */}
           {tasks.map(task => (
             <div key={task.id} className="mb-4">
               <div className="text-sm mb-1 px-2 py-1 bg-white shadow rounded w-fit relative z-10">
                 {task.title}
               </div>
+              {/* DNDドラッグバー */}
               <div className="relative h-6 bg-gray-100">
                 <DraggableBar task={task} />
               </div>

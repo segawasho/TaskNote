@@ -12,7 +12,10 @@ class Api::ProjectsController < ApplicationController
     project = current_user.projects.includes(:customer, :tasks).find(params[:id])
     render json: project.as_json(include: {
       customer: { only: [:id, :name, :customer_code] },
-      tasks: { only: [:id, :title, :start_date, :due_date] }
+      tasks: {
+        only: [:id, :title, :start_date, :due_date, :progress_rate, :status_id],
+        include: { status: { only: [:id, :name, :fixed] } }
+      }
     })
   end
 
