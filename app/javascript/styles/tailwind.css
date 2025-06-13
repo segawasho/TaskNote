@@ -1,3 +1,13 @@
+@layer base {
+  body {
+    @apply font-noto;
+  }
+  input::placeholder, textarea::placeholder {
+    @apply text-sm;
+  }
+}
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

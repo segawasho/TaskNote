@@ -35,7 +35,7 @@ const Header = ({ user }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-white shadow z-50">
+    <header className="fixed top-0 left-0 w-full bg-white shadow z-50 h-10">
       <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-2 relative">
         {/* 中央ロゴ（常に中央に固定） */}
         <div className="absolute left-1/2 transform -translate-x-1/2 w-auto text-center">
@@ -84,7 +84,7 @@ const Header = ({ user }) => {
                   className="block px-4 py-3 text-gray-800 hover:bg-gray-100"
                   onClick={() => setMenuOpen(false)}
                 >
-                  👤 ユーザー管理
+                  👤 管理者画面
                 </Link>
               )}
               <div

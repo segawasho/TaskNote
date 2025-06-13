@@ -28,7 +28,7 @@ import MemoList from '../components/memos/MemoList';
 import MemoForm from '../components/memos/MemoForm';
 import ProjectList from '../components/projects/ProjectList';
 import ProjectDetail from '../components/projects/ProjectDetail';
-
+import AdminUserList from '../components/admin/AdminUserList';
 
 
 const AppRoutes = () => {
@@ -193,6 +193,17 @@ const AppRoutes = () => {
               </PageLayout>
             }
           />
+          {/* 管理者用画面（is_adminのときのみ表示） */}
+          {user.is_admin && (
+            <Route
+              path="/admin/users"
+              element={
+                <PageLayout user={user}>
+                  <AdminUserList />
+                </PageLayout>
+              }
+            />
+          )}
           {/* 未定義ルートはトップへ */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </>

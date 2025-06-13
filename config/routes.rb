@@ -10,6 +10,8 @@ Rails.application.routes.draw do
     resources :roles, only: [:index]
     resources :industries, only: [:index]
 
+    resources :admin_users, only: [:index, :update, :destroy]
+
     resources :users, only: [:index, :update]
 
     resources :categories
