@@ -8,7 +8,7 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # origins 'http://localhost:3000' # 開発用フロントエンド側のポート
-    origins '*'  # ←一旦全部許可（後で tighten してもOK）
+    origins 'https://tasknote-ihuf.onrender.com'
 
     resource '/api/*',
       credentials: true,
