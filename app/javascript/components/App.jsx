@@ -13,10 +13,12 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import AppProviders from './AppProviders';
 import AppRoutes from './AppRoutes';
+import ScrollToTop from './common/ScrollToTop';
 
 const App = () => (
   <BrowserRouter>
     <AppProviders>
+      <ScrollToTop />
       <AppRoutes />
     </AppProviders>
   </BrowserRouter>
