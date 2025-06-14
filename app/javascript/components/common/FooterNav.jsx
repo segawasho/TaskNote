@@ -35,7 +35,7 @@ const FooterNav = ({ user }) => {
 
   return (
     <>
-      <footer className="fixed bottom-0 left-0 w-full z-50 bg-gray-100 border-t border-gray-200">
+      <footer className="fixed bottom-0 left-0 w-full z-50 bg-gray-100 border-t border-gray-200 pb-[env(safe-area-inset-bottom)]">
         <nav className="flex justify-between px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;

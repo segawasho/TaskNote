@@ -35,25 +35,23 @@ const Header = ({ user }) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-white shadow z-50 h-10">
-      <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-2 relative">
+    <header className="fixed top-0 left-0 w-full bg-white shadow z-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className="h-12 flex items-center justify-between px-4 relative">
         {/* 中央ロゴ（常に中央に固定） */}
         <div className="absolute left-1/2 transform -translate-x-1/2 w-auto text-center">
           <Link to="/">
-            <img src={logo} alt="TaskNote ロゴ" className="h-6 mx-auto cursor-pointer" />
+            <img src={logo} alt="TaskNote ロゴ" className="h-8 mx-auto cursor-pointer" />
           </Link>
         </div>
 
         {/* 左側スペース */}
         <div className="w-1/5"></div>
 
-        {/* 右端ハンバーガー（常に表示） */}
+        {/* 右端ハンバーガー */}
         <div className="w-1/5 flex justify-end">
           <button onClick={() => setMenuOpen(!menuOpen)} className="focus:outline-none">
-            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" strokeWidth="2"
-              viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h16" />
+            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
         </div>
