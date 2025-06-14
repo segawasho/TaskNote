@@ -7,8 +7,7 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    # origins 'http://localhost:3000' # 開発用フロントエンド側のポート
-    origins 'https://tasknote-ihuf.onrender.com'
+    origins 'http://localhost:3000', 'https://tasknote.jp', 'https://www.tasknote.jp'
 
     resource '/api/*',
       credentials: true,
