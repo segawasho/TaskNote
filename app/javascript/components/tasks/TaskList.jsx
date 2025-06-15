@@ -1,10 +1,15 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useMemo } from 'react';
 import CommentSection from './CommentSection';
 import AddModal from '../common/AddModal';
 import NewTaskForm from '../common/NewTaskForm';
+import SelectBox from '../common/SelectBox';
+import DateField from '../common/DateField';
 import { apiFetch } from '../api';
 import { ToastContext } from '../contexts/ToastContext';
 import { ModalContext } from '../contexts/ModalContext';
+
+
+
 
 const TaskList = ({user}) => {
   const [tasks, setTasks] = useState([]);
@@ -12,8 +17,13 @@ const TaskList = ({user}) => {
   const [customers, setCustomers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [statuses, setStatuses] = useState([]);
-
   const [projects, setProjects] = useState([]);
+
+  const customerOptions = useMemo(() => customers, [customers]);
+  const projectOptions = useMemo(() => projects, [projects]);
+  const categoryOptions = useMemo(() => categories, [categories]);
+  const statusOptions = useMemo(() => statuses, [statuses]);
+
 
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editedTitle, setEditedTitle] = useState('');
@@ -192,292 +202,324 @@ const TaskList = ({user}) => {
     );
   };
 
+  const clearFilters = () => {
+    setFilterCustomerId('');
+    setFilterProjectId('');
+    setFilterCategoryId('');
+    setFilterStatusId('');
+    setShowDoneFilter('not_done');  // ← 初期状態
+  };
+
 
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800">タスク一覧</h1>
-
-      {/* 新規登録 */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-700">新規タスク作成</h2>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          ＋ 新規追加
-        </button>
-      </div>
+    <>
+      {/* 追加モーダル */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-4 w-full max-w-md max-h-[90vh] overflow-auto shadow-lg">
-            <h2 className="text-base font-bold mb-4">タスク追加</h2>
-            <NewTaskForm user={user} onComplete={() => { fetchTasks(); setShowAddModal(false); }} />
+          <div className="bg-white rounded-xl w-full max-w-md shadow-lg flex flex-col h-[80%]">
+            <div className="px-4 py-2 border-b">
+              <h2 className="text-base font-bold">タスク追加</h2>
+            </div>
+
+            <div className="flex-1 overflow-auto p-4">
+              <NewTaskForm user={user} onComplete={() => { fetchTasks(); setShowAddModal(false); }} />
+            </div>
+
+            <div className="px-4 py-3 border-t flex justify-between">
+              <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-gray-300 rounded text-sm">戻る</button>
+              <button form="taskForm" type="submit" className="px-6 py-2 bg-green-600 text-white rounded text-sm">登録</button>
+            </div>
           </div>
         </div>
       )}
+      <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+        <h1 className="text-2xl font-bold text-gray-800">タスク一覧</h1>
 
-
-      {/* フィルターカード全体 */}
-      <div className="bg-white p-4 rounded shadow space-y-3 mt-8">
-
-        {/* ヘッダー（内包化） */}
+        {/* 新規登録 */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-700">フィルター</h2>
+          <h2 className="text-lg font-semibold text-gray-700">新規タスク作成</h2>
           <button
-            onClick={() => setShowFilter(!showFilter)}
-            className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-400"
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            {showFilter ? '非表示' : '表示'}
+            ＋ 新規追加
           </button>
         </div>
 
-        {/* 中身はトグルで制御 */}
-        {showFilter && (
-          <div className="space-y-3">
 
-            {/* プロジェクト・企業・カテゴリ・ステータス */}
-            <div className="flex flex-wrap gap-4">
-              <label className="flex flex-col text-sm text-gray-600">
-                プロジェクト
-                <select value={filterProjectId} onChange={(e) => setFilterProjectId(e.target.value)} className="border rounded px-2 py-1">
-                  <option value="">すべて</option>
-                  {projects.map(project => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col text-sm text-gray-600">
-                企業
-                <select value={filterCustomerId} onChange={(e) => setFilterCustomerId(e.target.value)} className="border rounded px-2 py-1">
-                  <option value="">すべて</option>
-                  {customers.map(customer => (
-                    <option key={customer.id} value={customer.id}>{customer.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col text-sm text-gray-600">
-                カテゴリ
-                <select value={filterCategoryId} onChange={(e) => setFilterCategoryId(e.target.value)} className="border rounded px-2 py-1">
-                  <option value="">すべて</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>{category.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col text-sm text-gray-600">
-                ステータス
-                <select value={filterStatusId} onChange={(e) => setFilterStatusId(e.target.value)} className="border rounded px-2 py-1">
-                  <option value="">すべて</option>
-                  {statuses.map(status => (
-                    <option key={status.id} value={status.id}>{status.name}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
+        {/* フィルターカード全体 */}
+        <div className="bg-white p-4 rounded shadow space-y-3 mt-8">
 
-            <div className="flex gap-2 mt-4">
-              {[
-                { key: 'not_done', label: '未完了' },
-                { key: 'done', label: '完了' },
-                { key: 'all', label: 'すべて' },
-              ].map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => setShowDoneFilter(key)}
-                  className={`px-3 py-1 rounded border text-sm transition
-                    ${showDoneFilter === key
-                      ? 'bg-gray-500 text-white border-gray-400'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}
-                  `}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
+          {/* ヘッダー（内包化） */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-700">フィルター</h2>
+            <button
+              onClick={() => setShowFilter(!showFilter)}
+              className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-400"
+            >
+              {showFilter ? '非表示' : '表示'}
+            </button>
           </div>
-        )}
-      </div>
 
-      {/* 並び替えボタン (フィルターカードの外に独立配置) */}
-      <div className="flex gap-2 mt-4">
-        {sortOptions.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setSortKey(key)}
-            className={`px-3 py-1 rounded border text-sm transition
-              ${sortKey === key
-                ? 'bg-gray-500 text-white border-gray-400'
-                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}
-            `}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+          {/* 中身はトグルで制御 */}
+          {showFilter && (
+            <div className="space-y-3">
 
-
-      {/* タスクリスト */}
-      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {tasks
-          .filter(task => {
-            return (
-              (filterProjectId === '' || task.project_id === Number(filterProjectId)) &&
-              (filterCustomerId === '' || task.customer_id === Number(filterCustomerId)) &&
-              (filterCategoryId === '' || task.category_id === Number(filterCategoryId)) &&
-              (filterStatusId === '' || task.status_id === Number(filterStatusId)) &&
-              (showDoneFilter === 'not_done' ? !(task.status && task.status.fixed) :
-               showDoneFilter === 'done' ? (task.status && task.status.fixed) : true)
-            );
-          })
-          .sort((a, b) => {
-            if (sortKey === 'updated_desc') {
-              return new Date(b.updated_at) - new Date(a.updated_at);
-            }
-            if (sortKey === 'due_date_asc') {
-              return new Date(a.due_date || '9999-12-31') - new Date(b.due_date || '9999-12-31');
-            }
-            return b.id - a.id; // 登録順
-          })
-          .map(task => (
-            <li key={task.id} className="bg-white border border-gray-300 rounded-xl p-4 shadow-md space-y-3 flex flex-col justify-between">
-            {editingTaskId === task.id ? (
+              {/* フィルター選択項目 */}
               <div className="space-y-3">
-                {/* 編集モード */}
-                <input
-                  type="text"
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                  placeholder="タイトル"
+                <SelectBox
+                  label="顧客"
+                  options={customerOptions}
+                  value={filterCustomerId}
+                  onChange={setFilterCustomerId}
+                  placeholder="すべて"
                 />
-                <textarea
-                  value={editedDescription}
-                  onChange={(e) => setEditedDescription(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm resize-none"
-                  placeholder="詳細"
-                  rows={3}
-                />
-                <input
-                  type="date"
-                  value={editedDueDate}
-                  onChange={(e) => setEditedDueDate(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                />
-                <div className="flex flex-wrap gap-2">
-                  <select value={editedProjectId} onChange={(e) => setEditedProjectId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
-                    <option value="">プロジェクトを選択</option>
-                    {projects.map(project => (
-                      <option key={project.id} value={project.id}>{project.name}</option>
-                    ))}
-                  </select>
-                  <select value={editedCustomerId} onChange={(e) => setEditedCustomerId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
-                    <option value="">企業を選択</option>
-                    {customers.map(customer => (
-                      <option key={customer.id} value={customer.id}>{customer.name}</option>
-                    ))}
-                  </select>
-                  <select value={editedCategoryId} onChange={(e) => setEditedCategoryId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
-                    <option value="">カテゴリを選択</option>
-                    {categories.map(category => (
-                      <option key={category.id} value={category.id}>{category.name}</option>
-                    ))}
-                  </select>
-                  <select value={editedStatusId} onChange={(e) => setEditedStatusId(Number(e.target.value))} className="border rounded px-2 py-1 text-sm w-full sm:w-auto">
-                    <option value="">ステータスを選択</option>
-                    {statuses.map(status => (
-                      <option key={status.id} value={status.id}>{status.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => handleUpdate(task.id)} className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
-                    更新
-                  </button>
-                  <button onClick={() => setEditingTaskId(null)} className="px-4 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 text-sm">
-                    キャンセル
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* 表示モード */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <span className={`px-2 py-1 rounded ${getDueDateClass(task.due_date)}`}>
-                      締切: {task.due_date || '未設定'}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
-                      {task.customer?.name || '企業: 未設定'}
-                    </span>
 
-                    {/* ▼ 折りたたみボタン */}
-                    <button
-                      onClick={() => toggleExpand(task.id)}
-                      className="ml-auto text-blue-500 text-sm"
-                    >
-                      {expandedTaskIds.includes(task.id) ? '▲ 詳細を隠す' : '▼ 詳細を表示'}
+                <SelectBox
+                  label="プロジェクト"
+                  options={projectOptions}
+                  value={filterProjectId}
+                  onChange={setFilterProjectId}
+                  placeholder="すべて"
+                />
+
+                <SelectBox
+                  label="カテゴリ"
+                  options={categoryOptions}
+                  value={filterCategoryId}
+                  onChange={setFilterCategoryId}
+                  placeholder="すべて"
+                />
+
+                <SelectBox
+                  label="ステータス"
+                  options={statusOptions}
+                  value={filterStatusId}
+                  onChange={setFilterStatusId}
+                  placeholder="すべて"
+                />
+              </div>
+
+              {/* 完了状態フィルター */}
+              <div className="flex gap-2 mt-4">
+                {[
+                  { key: 'not_done', label: '未完了' },
+                  { key: 'done', label: '完了' },
+                  { key: 'all', label: 'すべて' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setShowDoneFilter(key)}
+                    className={`px-3 py-1 rounded border text-sm transition
+                      ${showDoneFilter === key
+                        ? 'bg-gray-500 text-white border-gray-400'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}
+                    `}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="text-right mt-2">
+                <button
+                  onClick={clearFilters}
+                  className="px-3 py-1 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition"
+                >
+                  フィルターをクリア
+                </button>
+              </div>
+
+
+            </div>
+          )}
+        </div>
+
+        {/* 並び替えボタン (フィルターカードの外に独立配置) */}
+        <div className="flex gap-2 mt-4">
+          {sortOptions.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setSortKey(key)}
+              className={`px-3 py-1 rounded border text-sm transition
+                ${sortKey === key
+                  ? 'bg-gray-500 text-white border-gray-400'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}
+              `}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+
+        {/* タスクリスト */}
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {tasks
+            .filter(task => {
+              return (
+                (filterProjectId === '' || task.project_id === Number(filterProjectId)) &&
+                (filterCustomerId === '' || task.customer_id === Number(filterCustomerId)) &&
+                (filterCategoryId === '' || task.category_id === Number(filterCategoryId)) &&
+                (filterStatusId === '' || task.status_id === Number(filterStatusId)) &&
+                (showDoneFilter === 'not_done' ? !(task.status && task.status.fixed) :
+                 showDoneFilter === 'done' ? (task.status && task.status.fixed) : true)
+              );
+            })
+            .sort((a, b) => {
+              if (sortKey === 'updated_desc') {
+                return new Date(b.updated_at) - new Date(a.updated_at);
+              }
+              if (sortKey === 'due_date_asc') {
+                return new Date(a.due_date || '9999-12-31') - new Date(b.due_date || '9999-12-31');
+              }
+              return b.id - a.id; // 登録順
+            })
+            .map(task => (
+              <li key={task.id} className="bg-white border border-gray-300 rounded-xl p-4 shadow-md space-y-3 flex flex-col justify-between">
+              {editingTaskId === task.id ? (
+                <div className="space-y-3">
+                  {/* 編集モード */}
+                  <input
+                    type="text"
+                    value={editedTitle}
+                    onChange={(e) => setEditedTitle(e.target.value)}
+                    className="w-full border rounded px-3 py-2 text-sm"
+                    placeholder="タイトル"
+                  />
+                  <textarea
+                    value={editedDescription}
+                    onChange={(e) => setEditedDescription(e.target.value)}
+                    className="w-full border rounded px-3 py-2 text-sm resize-none"
+                    placeholder="詳細"
+                    rows={3}
+                  />
+                  <DateField
+                    label="締切日"
+                    value={editedDueDate}
+                    onChange={setEditedDueDate}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <SelectBox
+                      label="顧客"
+                      options={customerOptions}
+                      value={editedCustomerId}
+                      onChange={setEditedCustomerId}
+                      placeholder="顧客を選択"
+                    />
+
+                    <SelectBox
+                      label="プロジェクト"
+                      options={projectOptions}
+                      value={editedProjectId}
+                      onChange={setEditedProjectId}
+                      placeholder="プロジェクトを選択"
+                    />
+
+                    <SelectBox
+                      label="カテゴリ"
+                      options={categoryOptions}
+                      value={editedCategoryId}
+                      onChange={setEditedCategoryId}
+                      placeholder="カテゴリを選択"
+                    />
+
+                    <SelectBox
+                      label="ステータス"
+                      options={statusOptions}
+                      value={editedStatusId}
+                      onChange={setEditedStatusId}
+                      placeholder="ステータスを選択"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => handleUpdate(task.id)} className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
+                      更新
+                    </button>
+                    <button onClick={() => setEditingTaskId(null)} className="px-4 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 text-sm">
+                      キャンセル
                     </button>
                   </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 break-words">{task.title}</h3>
-
-                  {expandedTaskIds.includes(task.id) && (
-                    <>
-                      {/* ここから先が折りたたみ内部 */}
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
-                          {task.category?.name || 'カテゴリ: 未設定'}
-                        </span>
-                        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
-                          {task.status?.name || 'ステータス: 未設定'}
-                        </span>
-                      </div>
-
-                      {task.description && (
-                        <p className="text-sm text-gray-700 leading-relaxed break-words">
-                          {task.description}
-                        </p>
-                      )}
-
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <button
-                          onClick={() => {
-                            setEditingTaskId(task.id);
-                            setEditedTitle(task.title);
-                            setEditedDescription(task.description || '');
-                            setEditedDueDate(task.due_date || '');
-                            setEditedProjectId(task.project_id || '');
-                            setEditedCustomerId(task.customer_id || '');
-                            setEditedCategoryId(task.category_id || '');
-                            setEditedStatusId(task.status_id || '');
-                          }}
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-                        >
-                          編集
-                        </button>
-                        <button
-                          onClick={() => confirmDelete(task.id)}
-                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-                        >
-                          削除
-                        </button>
-                        </div>
-
-                        <div className="mt-3 border-t pt-3">
-                          <CommentSection taskId={task.id} user={user} />
-                        </div>
-                    </>
-                  )}
                 </div>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
+              ) : (
+                <>
+                  {/* 表示モード */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <span className={`px-2 py-1 rounded ${getDueDateClass(task.due_date)}`}>
+                        締切: {task.due_date || '未設定'}
+                      </span>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                        {task.customer?.name || '企業: 未設定'}
+                      </span>
 
+                      {/* ▼ 折りたたみボタン */}
+                      <button
+                        onClick={() => toggleExpand(task.id)}
+                        className="ml-auto text-blue-500 text-sm"
+                      >
+                        {expandedTaskIds.includes(task.id) ? '▲ 詳細を隠す' : '▼ 詳細を表示'}
+                      </button>
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-gray-900 break-words">{task.title}</h3>
+
+                    {expandedTaskIds.includes(task.id) && (
+                      <>
+                        {/* ここから先が折りたたみ内部 */}
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                            {task.category?.name || 'カテゴリ: 未設定'}
+                          </span>
+                          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded">
+                            {task.status?.name || 'ステータス: 未設定'}
+                          </span>
+                        </div>
+
+                        {task.description && (
+                          <p className="text-sm text-gray-700 leading-relaxed break-words">
+                            {task.description}
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <button
+                            onClick={() => {
+                              setEditingTaskId(task.id);
+                              setEditedTitle(task.title);
+                              setEditedDescription(task.description || '');
+                              setEditedDueDate(task.due_date || '');
+                              setEditedProjectId(task.project_id || '');
+                              setEditedCustomerId(task.customer_id || '');
+                              setEditedCategoryId(task.category_id || '');
+                              setEditedStatusId(task.status_id || '');
+                            }}
+                            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                          >
+                            編集
+                          </button>
+                          <button
+                            onClick={() => confirmDelete(task.id)}
+                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                          >
+                            削除
+                          </button>
+                          </div>
+
+                          <div className="mt-3 border-t pt-3">
+                            <CommentSection taskId={task.id} user={user} />
+                          </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 };
 

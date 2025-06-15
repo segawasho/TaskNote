@@ -33,6 +33,12 @@ const FooterNav = ({ user }) => {
     setMode(null);
   };
 
+  const handleNavClick = (path) => {
+    setShowAddModal(false);
+    setMode(null);
+  };
+
+
   return (
     <>
       <footer className="fixed bottom-0 left-0 w-full z-50 bg-gray-100 border-t border-gray-200 pb-[env(safe-area-inset-bottom)]">
@@ -48,6 +54,7 @@ const FooterNav = ({ user }) => {
                 className={`flex flex-col items-center justify-center flex-1 py-2 text-xs ${
                   isActive ? 'text-indigo-300 font-semibold' : 'text-gray-600'
                 }`}
+                onClick={() => handleNavClick(item.path)}
               >
                 <img src={item.icon} alt={item.label} className="w-6 h-6 mb-1" />
                 <span>{item.label}</span>
@@ -55,7 +62,7 @@ const FooterNav = ({ user }) => {
             ) : (
               <button
                 key={item.label}
-                onClick={handleClick}
+                onClick={item.action}
                 className="flex flex-col items-center justify-center flex-1 py-2 text-xs text-gray-600"
               >
                 <img src={item.icon} alt={item.label} className="w-6 h-6 mb-1" />
@@ -75,21 +82,46 @@ const FooterNav = ({ user }) => {
 
       {showAddModal && mode === 'task' && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-4 w-full max-w-md max-h-[90vh] overflow-auto shadow-lg">
-            <h2 className="text-base font-bold mb-4">タスク追加</h2>
-            <NewTaskForm user={user} onComplete={handleClose} />
+          <div className="bg-white rounded-xl w-full max-w-md shadow-lg flex flex-col h-[80%]">
+            <div className="px-4 py-2 border-b">
+              <h2 className="text-base font-bold">タスク追加</h2>
+            </div>
+
+            <div className="flex-1 overflow-auto p-4">
+              <NewTaskForm user={user} onComplete={handleClose} />
+            </div>
+
+            <div className="px-4 py-3 border-t flex justify-between">
+              <button type="button" onClick={handleClose} className="px-4 py-2 bg-gray-300 rounded text-sm">戻る</button>
+              <button form="taskForm" type="submit" className="px-6 py-2 bg-green-600 text-white rounded text-sm">登録</button>
+            </div>
           </div>
         </div>
       )}
 
+
+
+
       {showAddModal && mode === 'memo' && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-4 w-full max-w-md max-h-[90vh] overflow-auto shadow-lg">
-            <h2 className="text-base font-bold mb-4">メモ追加</h2>
-            <NewMemoForm user={user} onComplete={handleClose} />
+          <div className="bg-white rounded-xl w-full max-w-md shadow-lg flex flex-col h-[80%]">
+
+            <div className="px-4 py-2 border-b">
+              <h2 className="text-base font-bold">ノート追加</h2>
+            </div>
+
+            <div className="flex-1 overflow-auto p-4">
+              <NewMemoForm user={user} onComplete={handleClose} />
+            </div>
+
+            <div className="px-4 py-3 border-t flex justify-between">
+              <button type="button" onClick={handleClose} className="px-4 py-2 bg-gray-300 rounded text-sm">戻る</button>
+              <button form="memoForm" type="submit" className="px-6 py-2 bg-green-600 text-white rounded text-sm">登録</button>
+            </div>
           </div>
         </div>
       )}
+
 
     </>
   );

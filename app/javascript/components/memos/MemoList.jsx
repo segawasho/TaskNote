@@ -1,14 +1,16 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { ToastContext } from '../contexts/ToastContext';
 import { ModalContext } from '../contexts/ModalContext';
 import MemoEditor from './MemoEditor'
+import SelectBox from '../common/SelectBox';
 
 const MemoSection = (　{user}　) => {
   const [memos, setMemos] = useState([]);
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
+  const customerOptions = useMemo(() => customers, [customers]);
   const [showNewForm, setShowNewForm] = useState(false);
   const [filters, setFilters] = useState({ customerId: '', title: '', body: ''});
   const [newMemo, setNewMemo] = useState({ title: '', memo_date: '', customer_id: '' });
@@ -128,41 +130,37 @@ const MemoSection = (　{user}　) => {
       <div className="border border-gray-300 bg-gray-50 rounded p-4 shadow-sm mb-6 space-y-2">
         <h3 className="text-lg font-medium">検索フィルター</h3>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <label className="flex items-center space-x-1">
-            <span>企業：</span>
-            <select
-              className="border border-gray-300 rounded px-2 py-1"
+        <div className="space-y-3">
+          <div>
+            <SelectBox
+              label="企業"
+              options={customerOptions}
               value={filters.customerId}
-              onChange={(e) => setFilters({ ...filters, customerId: e.target.value })}
-            >
-              <option value="">すべて</option>
-              {customers.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="flex items-center space-x-1">
-            <span>タイトル：</span>
+              onChange={(value) => setFilters({ ...filters, customerId: value })}
+              placeholder="すべて"
+            />
+          </div>
+          <div>
+            <label className="block font-medium mb-1">タイトル</label>
             <input
               type="text"
-              className="border border-gray-300 rounded px-2 py-1"
+              className="w-full border border-gray-300 rounded px-2 py-1"
               value={filters.title}
               onChange={(e) => setFilters({ ...filters, title: e.target.value })}
             />
-          </label>
+          </div>
 
-          <label className="flex items-center space-x-1">
-            <span>本文：</span>
+          <div>
+            <label className="block font-medium mb-1">本文</label>
             <input
               type="text"
-              className="border border-gray-300 rounded px-2 py-1"
+              className="w-full border border-gray-300 rounded px-2 py-1"
               value={filters.body}
               onChange={(e) => setFilters({ ...filters, body: e.target.value })}
             />
-          </label>
+          </div>
         </div>
+
 
       </div>
 

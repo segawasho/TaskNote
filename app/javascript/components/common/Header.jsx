@@ -85,6 +85,13 @@ const Header = ({ user }) => {
                   👤 管理者画面
                 </Link>
               )}
+              <Link
+                to="/projects"
+                className="block px-4 py-3 text-gray-800 hover:bg-gray-100"
+                onClick={() => setMenuOpen(false)}
+              >
+                📓 プロジェクト
+              </Link>
               <div
                 className="block px-4 py-3 text-red-600 hover:bg-gray-100 cursor-pointer"
                 onClick={() => {

@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { apiFetch } from '../api';
 import MemoEditor from './MemoEditor';
+import SelectBox from '../common/SelectBox';
+
 
 const MemoForm = () => {
   const navigate = useNavigate();
@@ -15,6 +17,9 @@ const MemoForm = () => {
   });
 
   const [customers, setCustomers] = useState([]);
+  const customerOptions = useMemo(() => customers, [customers]);
+
+
   const [errors, setErrors] = useState('');
 
   // customers取得
@@ -108,18 +113,13 @@ const MemoForm = () => {
         </div>
 
         <div>
-          <label className="block font-medium">企業</label>
-          <select
-            name="customer_id"
+          <SelectBox
+            label="企業"
+            options={customerOptions}
             value={memo.customer_id}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">選択してください（任意）</option>
-            {customers.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+            onChange={(value) => setMemo(prev => ({ ...prev, customer_id: value }))}
+            placeholder="選択してください（任意）"
+          />
         </div>
 
         <div>

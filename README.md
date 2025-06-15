@@ -202,3 +202,28 @@ get '*path', to: 'static#index', constraints: ->(req) { !req.xhr? && req.format.
 ---
 
 ## 🐞 開発引き継ぎメモ
+
+---
+
+## 🌐 ドメイン・DNS構成メモ（インフラ設定）
+
+### ドメイン取得
+- tasknote.jp → お名前.com にて取得（2025年6月）
+
+### DNS管理
+- DNSは Cloudflare に移管して管理（2025年6月〜）
+- ネームサーバーはお名前.com 側で Cloudflare指定の NS へ変更済み
+
+### 現行DNSレコード（主要）
+| タイプ | 名前 | 内容 | 備考 |
+| --- | --- | --- | --- |
+| A | tasknote.jp | 216.24.57.1 | RenderのAレコード |
+| CNAME | www | tasknote-ihuf.onrender.com | Renderのカスタムドメイン用 |
+| 他 | NS / MX / TXT | (Cloudflareが自動インポート) | 不要なものは整理済み |
+
+### 今後注意事項
+- メールサービス利用時は MX レコード、SPF/TXT 設定が必要
+- AWS Route53 などを使う場合は NS競合に注意
+- サービス移行時は Cloudflare側のA/CNAMEを更新
+
+---

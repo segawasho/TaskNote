@@ -10,7 +10,7 @@ const AddModal = ({ onClose, onSelect }) => {
       />
 
       {/* 下からスライドイン */}
-      <div className="fixed bottom-0 left-0 w-full bg-white rounded-t-2xl p-6 z-50 shadow-lg transition-transform duration-300">
+      <div className="fixed bottom-[60px] left-0 w-full bg-white rounded-t-2xl p-6 z-50 shadow-lg transition-transform duration-300">
         <h2 className="text-lg font-bold mb-4">追加メニュー</h2>
         <div className="flex flex-col gap-4">
           <button
