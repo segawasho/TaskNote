@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { apiFetch } from '../api';
 import { ToastContext } from '../contexts/ToastContext';
+import { useMemos } from '../contexts/MemoContext';
 import MemoEditor from '../memos/MemoEditor';
 import SelectBox from './SelectBox';
 
 const NewMemoForm = ({ user, onComplete }) => {
   const { showToast } = useContext(ToastContext);
+  const { memos, setMemos } = useMemos();
 
   const [customers, setCustomers] = useState([]);
   const [title, setTitle] = useState('');
@@ -26,11 +28,13 @@ const NewMemoForm = ({ user, onComplete }) => {
     });
 
     if (res.ok) {
-      showToast('ノート追加完了');
-      onComplete();
+      const created = await res.json();  // ← 新規作成されたmemoデータを受け取る
+      setMemos([...memos, created]);
+      showToast('ノートを作成しました', 'success');
+      onComplete(created);  // ← 親に渡す
     } else {
       const err = await res.json();
-      showToast(err.errors?.join(', ') || '追加失敗', 'error');
+      showToast(err.errors?.join(', ') || 'ノートの作成に失敗しました', 'error');
     }
   };
 

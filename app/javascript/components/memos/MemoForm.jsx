@@ -47,7 +47,7 @@ const MemoForm = () => {
           });
         })
         .catch(err => {
-          console.error('メモ取得エラー:', err);
+          console.error('ノート取得エラー:', err);
         });
     }
   }, [id, isEditMode]);
@@ -93,7 +93,7 @@ const MemoForm = () => {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-3xl">
-      <h2 className="text-xl font-semibold mb-4">{isEditMode ? 'メモ編集' : '新規メモ作成'}</h2>
+      <h2 className="text-xl font-semibold mb-4">{isEditMode ? 'ノート編集' : '新規ノート作成'}</h2>
 
       {errors && (
         <div className="bg-red-100 text-red-700 p-2 rounded mb-4">{errors}</div>

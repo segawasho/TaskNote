@@ -3,11 +3,14 @@
 import React, { useState, useEffect, useContext, forwardRef, useMemo } from 'react';
 import { apiFetch } from '../api';
 import { ToastContext } from '../contexts/ToastContext';
+import { useTasks } from '../contexts/TaskContext';
 
 import SelectBox from './SelectBox';
 import DateField from './DateField';
 
 const NewTaskForm = ({ user, onComplete }) => {
+  const { tasks, setTasks } = useTasks();
+
   const { showToast } = useContext(ToastContext);
 
   const [customers, setCustomers] = useState([]);
@@ -67,11 +70,13 @@ const NewTaskForm = ({ user, onComplete }) => {
     });
 
     if (res.ok) {
-      showToast('タスク追加完了');
-      onComplete();
+      const created = await res.json();
+      setTasks([...tasks, created]);
+      showToast('タスクを作成しました', 'success');
+      onComplete(created);
     } else {
       const err = await res.json();
-      showToast(err.errors?.join(', ') || '追加失敗', 'error');
+      showToast(err.errors?.join(', ') || 'タスクの作成に失敗しました', 'error');
     }
   };
 
@@ -92,7 +97,7 @@ const NewTaskForm = ({ user, onComplete }) => {
   ));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 text-sm">
+    <form id="taskForm" onSubmit={handleSubmit} className="space-y-4 text-sm">
       <div>
         <label className="block font-medium mb-1">タイトル</label>
         <input

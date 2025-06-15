@@ -7,12 +7,13 @@ import DateField from '../common/DateField';
 import { apiFetch } from '../api';
 import { ToastContext } from '../contexts/ToastContext';
 import { ModalContext } from '../contexts/ModalContext';
+import { useTasks } from '../contexts/TaskContext';
 
 
 
 
 const TaskList = ({user}) => {
-  const [tasks, setTasks] = useState([]);
+  const { tasks, setTasks } = useTasks();
 
   const [customers, setCustomers] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -44,7 +45,7 @@ const TaskList = ({user}) => {
 
   const [showDoneFilter, setShowDoneFilter] = useState('not_done'); // デフォルト：未完了のみ
 
-  const [sortKey, setSortKey] = useState('created_desc');
+  const [sortKey, setSortKey] = useState('updated_desc');
 
   const { showModal, hideModal } = useContext(ModalContext);
   const { showToast } = useContext(ToastContext);
@@ -164,7 +165,6 @@ const TaskList = ({user}) => {
 
   // 並び替えオプション定義
   const sortOptions = [
-    { key: 'created_desc', label: '登録順' },
     { key: 'updated_desc', label: '更新順' },
     { key: 'due_date_asc', label: '締切順' }
   ];
@@ -233,12 +233,10 @@ const TaskList = ({user}) => {
           </div>
         </div>
       )}
-      <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-        <h1 className="text-2xl font-bold text-gray-800">タスク一覧</h1>
 
-        {/* 新規登録 */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-700">新規タスク作成</h2>
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">タスク一覧</h2>
           <button
             onClick={() => setShowAddModal(true)}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -253,7 +251,10 @@ const TaskList = ({user}) => {
 
           {/* ヘッダー（内包化） */}
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-700">フィルター</h2>
+            <div className="flex items-center gap-2">
+              <img src="/filter.png" alt="Filter" className="w-5 h-5" />
+              <h2 className="text-lg font-semibold text-gray-700">フィルター</h2>
+            </div>
             <button
               onClick={() => setShowFilter(!showFilter)}
               className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-400"
@@ -355,7 +356,7 @@ const TaskList = ({user}) => {
 
 
         {/* タスクリスト */}
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
           {tasks
             .filter(task => {
               return (
@@ -374,7 +375,6 @@ const TaskList = ({user}) => {
               if (sortKey === 'due_date_asc') {
                 return new Date(a.due_date || '9999-12-31') - new Date(b.due_date || '9999-12-31');
               }
-              return b.id - a.id; // 登録順
             })
             .map(task => (
               <li key={task.id} className="bg-white border border-gray-300 rounded-xl p-4 shadow-md space-y-3 flex flex-col justify-between">

@@ -75,9 +75,11 @@ const FooterNav = ({ user }) => {
 
       {showAddModal && !mode && (
         <AddModal
+          isOpen={showAddModal}
           onClose={handleClose}
           onSelect={handleSelect}
         />
+
       )}
 
       {showAddModal && mode === 'task' && (
