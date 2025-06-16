@@ -32,6 +32,10 @@ const NewTaskForm = ({ user, onComplete }) => {
   const [statusId, setStatusId] = useState('');
   const [projectId, setProjectId] = useState('');
 
+  // タイトル以外の項目をオプション化
+  const [showOptions, setShowOptions] = useState(false);
+
+
   useEffect(() => {
     fetchMasterData();
   }, []);
@@ -43,10 +47,20 @@ const NewTaskForm = ({ user, onComplete }) => {
       apiFetch('/api/statuses'),
       apiFetch('/api/projects'),
     ]);
-    setCustomers(await customersRes.json());
-    setCategories(await categoriesRes.json());
-    setStatuses(await statusesRes.json());
-    setProjects(await projectsRes.json());
+    const customersData = await customersRes.json();
+    const categoriesData = await categoriesRes.json();
+    const statusesData = await statusesRes.json();
+    const projectsData = await projectsRes.json();
+
+    setCustomers(customersData);
+    setCategories(categoriesData);
+    setStatuses(statusesData);
+    setProjects(projectsData);
+
+    // ✅ ステータスの1件目を初期選択にセット（空配列対策も含む）
+    if (statusesData.length > 0) {
+      setStatusId(statusesData[0].id);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -71,9 +85,15 @@ const NewTaskForm = ({ user, onComplete }) => {
 
     if (res.ok) {
       const created = await res.json();
-      setTasks([...tasks, created]);
+      // ✅ ここでstatusオブジェクトを補完する
+      const fullCreated = {
+        ...created,
+        status: statuses.find(s => s.id === created.status_id) || null,
+      };
+
+      setTasks([...tasks, fullCreated]);
       showToast('タスクを作成しました', 'success');
-      onComplete(created);
+      onComplete(fullCreated);
     } else {
       const err = await res.json();
       showToast(err.errors?.join(', ') || 'タスクの作成に失敗しました', 'error');
@@ -110,6 +130,7 @@ const NewTaskForm = ({ user, onComplete }) => {
         />
       </div>
 
+
       <div>
         <label className="block font-medium mb-1">詳細（任意）</label>
         <textarea
@@ -128,38 +149,55 @@ const NewTaskForm = ({ user, onComplete }) => {
       />
 
 
+      <div className="my-2">
+        <button
+          type="button"
+          onClick={() => setShowOptions(prev => !prev)}
+          className="text-blue-600 text-base font-medium"
+        >
+          {showOptions ? 'ー　任意オプション' : '＋　任意オプション'}
+        </button>
+      </div>
 
-      <SelectBox
-        label="顧客"
-        options={customerOptions}
-        value={customerId}
-        onChange={setCustomerId}
-        placeholder="顧客を選択"
-      />
 
-      <SelectBox
-        label="プロジェクト"
-        options={projectOptions}
-        value={projectId}
-        onChange={setProjectId}
-        placeholder="プロジェクトを選択"
-      />
+      {showOptions && (
+        <>
 
-      <SelectBox
-        label="カテゴリ"
-        options={categoryOptions}
-        value={categoryId}
-        onChange={setCategoryId}
-        placeholder="カテゴリを選択"
-      />
+          <SelectBox
+            label="顧客"
+            options={customerOptions}
+            value={customerId}
+            onChange={setCustomerId}
+            placeholder="顧客を選択"
+          />
 
-      <SelectBox
-        label="ステータス"
-        options={statusOptions}
-        value={statusId}
-        onChange={setStatusId}
-        placeholder="ステータスを選択"
-      />
+          <SelectBox
+            label="プロジェクト"
+            options={projectOptions}
+            value={projectId}
+            onChange={setProjectId}
+            placeholder="プロジェクトを選択"
+          />
+
+          <SelectBox
+            label="カテゴリ"
+            options={categoryOptions}
+            value={categoryId}
+            onChange={setCategoryId}
+            placeholder="カテゴリを選択"
+          />
+
+          <SelectBox
+            label="ステータス"
+            options={statusOptions}
+            value={statusId}
+            onChange={setStatusId}
+            placeholder="ステータスを選択"
+          />
+
+        </>
+      )}
+
 
     </form>
   );

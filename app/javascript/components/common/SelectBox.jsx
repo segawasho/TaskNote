@@ -1,63 +1,63 @@
-import React, { useState, useEffect } from 'react';
-import { Listbox, Transition } from '@headlessui/react';
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
+import React, { useRef } from 'react';
+import Select from 'react-select';
 
 const SelectBox = ({ label, options, value, onChange, placeholder }) => {
-  const selectedOption = options.find((o) => o.id === value) || null;
+  // セレクト外の自動スクロール用のref（div側に紐付け）
+  const containerRef = useRef();
+
+  // セレクトの選択肢リストを整形
+  const selectOptions = [
+    { value: '', label: placeholder },
+    ...options.map((item) => ({
+      value: item.id,
+      label: item.name,
+    })),
+  ];
+
+  // 現在の選択値に対応するオプション
+  const selectedOption = selectOptions.find((o) => o.value === value) || null;
+
+  // 値が変更された時
+  const handleChange = (selected) => {
+    onChange(selected?.value || '');
+  };
+
+  // セレクトが開かれた時にスクロール
+  const handleMenuOpen = () => {
+    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    window.scrollBy(0, -80);
+  };
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={containerRef}>
       <label className="block font-medium mb-1">{label}</label>
-      <Listbox value={selectedOption} onChange={(val) => onChange(val?.id || '')}>
-        <div className="relative">
-          <Listbox.Button className="relative w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 text-sm">
-            <span className="block truncate">
-              {selectedOption ? selectedOption.name : placeholder}
-            </span>
-            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <ChevronUpDownIcon className="h-5 w-5 text-gray-400" />
-            </span>
-          </Listbox.Button>
-
-          <Transition
-            leave="transition ease-in duration-100"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-              <Listbox.Option
-                value={null}
-                className={({ active }) =>
-                  `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                    active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                  }`
-                }
-              >
-                {placeholder}
-              </Listbox.Option>
-
-              {options.map((item) => (
-                <Listbox.Option
-                  key={item.id}
-                  value={item}
-                  className={({ active }) =>
-                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                      active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                    }`
-                  }
-                >
-                  <span className="block truncate">{item.name}</span>
-                  {value === item.id && (
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                      <CheckIcon className="h-5 w-5" />
-                    </span>
-                  )}
-                </Listbox.Option>
-              ))}
-            </Listbox.Options>
-          </Transition>
-        </div>
-      </Listbox>
+      <Select
+        options={selectOptions}
+        value={selectedOption}
+        onChange={handleChange}
+        placeholder={placeholder}
+        isClearable={value !== ''}  // ✅ 初期時はクリアボタン非表示
+        isSearchable={false}        // ✅ 自由入力は不可
+        classNamePrefix="react-select"
+        styles={{
+          control: (provided) => ({
+            ...provided,
+            borderColor: '#D1D5DB',
+            borderRadius: '0.375rem',
+            minHeight: '40px',
+          }),
+          menu: (provided) => ({
+            ...provided,
+            zIndex: 50,  // モーダル内の重なり優先
+            marginBottom: '60px',  // ✅ 下に余白つけてはみ出し防止
+          }),
+          placeholder: (provided) => ({
+            ...provided,
+            color: '#9CA3AF',  // ✅ プレースホルダーは薄グレー
+          }),
+        }}
+        onMenuOpen={handleMenuOpen}
+      />
     </div>
   );
 };

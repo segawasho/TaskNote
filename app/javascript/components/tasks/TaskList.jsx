@@ -222,7 +222,7 @@ const TaskList = ({user}) => {
               <h2 className="text-base font-bold">タスク追加</h2>
             </div>
 
-            <div className="flex-1 overflow-auto p-4">
+            <div className="flex-1 overflow-auto p-4 pb-40">
               <NewTaskForm user={user} onComplete={() => { fetchTasks(); setShowAddModal(false); }} />
             </div>
 
